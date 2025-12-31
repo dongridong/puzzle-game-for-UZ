@@ -184,22 +184,30 @@ class Board {
   }
 
   // After clearing, tiles fall down and new tiles spawn from the top.
-  applyGravity() {
+  applyGravity(recordMoves = false) {
     const size = this.size;
+    const moves = [];
     for (let x = 0; x < size; x++) {
       let writeY = size - 1;
       for (let y = size - 1; y >= 0; y--) {
         const tile = this.grid[y][x];
         if (tile) {
           this.grid[writeY][x] = tile;
-          if (writeY !== y) this.grid[y][x] = null;
+          if (writeY !== y) {
+            if (recordMoves) moves.push({ id: tile.id, x, fromY: y, toY: writeY });
+            this.grid[y][x] = null;
+          }
           writeY--;
         }
       }
+      const missing = writeY + 1; // how many new tiles needed
       for (let y = writeY; y >= 0; y--) {
-        this.grid[y][x] = this.randomTile();
+        const tile = this.randomTile();
+        this.grid[y][x] = tile;
+        if (recordMoves) moves.push({ id: tile.id, x, fromY: y - missing, toY: y });
       }
     }
+    return moves;
   }
 
   // Clears tiles at provided positions and returns the cleared tiles for bookkeeping.
@@ -219,6 +227,7 @@ class Board {
   resolveMatches() {
     const allCleared = [];
     const boostersToSpawn = [];
+    const gravitySteps = [];
     let matches = this.findMatches();
 
     while (matches.length) {
@@ -260,11 +269,11 @@ class Board {
       }
 
       boostersToSpawn.length = 0;
-      this.applyGravity();
+      gravitySteps.push(this.applyGravity(true));
       matches = this.findMatches();
     }
 
-    return allCleared;
+    return { cleared: allCleared, gravitySteps };
   }
 }
 
@@ -426,10 +435,19 @@ class Renderer {
     for (const anim of this.animationQueue) {
       if (anim.done) continue;
       const progress = Math.min(1, (now - anim.start) / anim.duration);
-      anim.currentOffset = {
-        dx: anim.deltaX * easeOutQuad(progress),
-        dy: anim.deltaY * easeOutQuad(progress),
-      };
+      const easeFn = anim.easing || easeOutQuad;
+      const eased = easeFn(progress);
+      if (anim.mode === "fall") {
+        anim.currentOffset = {
+          dx: 0,
+          dy: anim.startOffsetY * (1 - eased),
+        };
+      } else {
+        anim.currentOffset = {
+          dx: (anim.deltaX || 0) * eased,
+          dy: (anim.deltaY || 0) * eased,
+        };
+      }
       if (progress >= 1) anim.done = true;
     }
   }
@@ -564,11 +582,13 @@ class Game {
 
   resolveBoard() {
     this.setState(GameState.RESOLVING);
-    const cleared = this.board.resolveMatches();
+    const { cleared, gravitySteps } = this.board.resolveMatches();
     this.countObjectives(cleared);
     this.updateHud();
-    this.setState(GameState.IDLE);
-    this.checkEndConditions();
+    this.animateGravitySteps(gravitySteps, () => {
+      this.setState(GameState.IDLE);
+      this.checkEndConditions();
+    });
   }
 
   countObjectives(cleared) {
@@ -594,8 +614,6 @@ class Game {
     if (!tileA.isBooster() && !tileB.isBooster()) return false;
 
     const effects = [];
-    const positions = [posA, posB];
-    const tiles = [tileA, tileB];
     // If both boosters -> special combined pattern.
     if (tileA.isBooster() && tileB.isBooster()) {
       if (tileA.booster === BoosterType.BOMB || tileB.booster === BoosterType.BOMB) {
@@ -622,12 +640,14 @@ class Game {
 
     // Apply effects.
     const cleared = this.board.clearTiles(effects);
-    this.board.applyGravity();
+    const gravityMoves = this.board.applyGravity(true);
     this.countObjectives(cleared);
     this.movesLeft -= 1;
     this.updateHud();
-    this.setState(GameState.IDLE);
-    this.checkEndConditions();
+    this.animateGravitySteps([gravityMoves], () => {
+      this.setState(GameState.IDLE);
+      this.checkEndConditions();
+    });
     return true;
   }
 
@@ -649,10 +669,68 @@ class Game {
     }
     return positions;
   }
+
+  animateFalls(movements, onComplete) {
+    if (!movements.length) {
+      onComplete?.();
+      return;
+    }
+    const duration = 260;
+    const start = performance.now();
+    movements.forEach((move) => {
+      const startOffsetY = (move.fromY - move.toY) * this.renderer.tileOffset;
+      this.renderer.enqueue({
+        targetId: move.id,
+        startOffsetY,
+        start,
+        duration,
+        easing: easeOutBounce,
+        mode: "fall",
+        done: false,
+      });
+    });
+    setTimeout(() => onComplete?.(), duration);
+  }
+
+  animateGravitySteps(steps, onComplete) {
+    const remaining = [...steps];
+    const runNext = () => {
+      if (!remaining.length) {
+        onComplete?.();
+        return;
+      }
+      const step = remaining.shift();
+      if (!step.length) {
+        runNext();
+        return;
+      }
+      this.setState(GameState.FALLING);
+      this.animateFalls(step, runNext);
+    };
+    runNext();
+  }
 }
 
 function easeOutQuad(t) {
   return 1 - (1 - t) * (1 - t);
+}
+
+function easeOutBounce(t) {
+  const n1 = 7.5625;
+  const d1 = 2.75;
+  if (t < 1 / d1) {
+    return n1 * t * t;
+  }
+  if (t < 2 / d1) {
+    t -= 1.5 / d1;
+    return n1 * t * t + 0.75;
+  }
+  if (t < 2.5 / d1) {
+    t -= 2.25 / d1;
+    return n1 * t * t + 0.9375;
+  }
+  t -= 2.625 / d1;
+  return n1 * t * t + 0.984375;
 }
 
 // Bootstrap

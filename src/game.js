@@ -30,9 +30,10 @@ const GameState = Object.freeze({
 });
 
 class Tile {
-  constructor(color, booster = BoosterType.NONE) {
+  constructor(color, booster = BoosterType.NONE, variant = null) {
     this.color = color;
     this.booster = booster;
+    this.variant = variant; // visual variant for booster icons (e.g., arrow orientation, gem)
     this.id = crypto.randomUUID();
   }
 
@@ -228,15 +229,26 @@ class Board {
 
         // Decide booster creation: prioritize bombs for 5+ length or T/L shapes.
         let spawnBooster = null;
-        if (match.orientation === "cross" || match.length >= 5) {
+        let spawnVariant = null;
+        if (match.orientation === "cross") {
           spawnBooster = BoosterType.BOMB;
+          spawnVariant = "bomb";
+        } else if (match.length >= 5) {
+          spawnBooster = BoosterType.BOMB;
+          spawnVariant = match.orientation === "horizontal" || match.orientation === "vertical" ? "gem" : "bomb";
         } else if (match.length === 4) {
           spawnBooster = match.orientation === "horizontal" ? BoosterType.H_ROCKET : BoosterType.V_ROCKET;
+          spawnVariant = match.orientation === "horizontal" ? "arrow-h" : "arrow-v";
         }
 
         if (spawnBooster) {
           const anchor = match.anchor || match.tiles[Math.floor(match.tiles.length / 2)];
-          boostersToSpawn.push({ ...anchor, booster: spawnBooster, color: cleared[0]?.tile.color });
+          boostersToSpawn.push({
+            ...anchor,
+            booster: spawnBooster,
+            variant: spawnVariant,
+            color: cleared[0]?.tile.color,
+          });
         }
       }
 
@@ -244,7 +256,7 @@ class Board {
 
       // Place boosters after tiles removed to avoid wiping them instantly.
       for (const spawn of boostersToSpawn) {
-        this.set(spawn.x, spawn.y, new Tile(spawn.color, spawn.booster));
+        this.set(spawn.x, spawn.y, new Tile(spawn.color, spawn.booster, spawn.variant));
       }
 
       boostersToSpawn.length = 0;
@@ -312,19 +324,85 @@ class Renderer {
 
   drawBoosterIcon(tile, x, y, size) {
     this.ctx.save();
-    this.ctx.fillStyle = "rgba(255,255,255,0.85)";
+    this.ctx.fillStyle = "rgba(255,255,255,0.9)";
     this.ctx.translate(12, 12);
-    const inset = 16;
+    const inset = 14;
     if (tile.booster === BoosterType.H_ROCKET) {
-      this.ctx.fillRect(x + inset, y + size / 2 - 6, size - inset * 2, 12);
+      this.drawArrow(x, y + size / 2, size - inset * 2, 10, "horizontal");
     } else if (tile.booster === BoosterType.V_ROCKET) {
-      this.ctx.fillRect(x + size / 2 - 6, y + inset, 12, size - inset * 2);
+      this.drawArrow(x + size / 2, y, size - inset * 2, 10, "vertical");
     } else if (tile.booster === BoosterType.BOMB) {
-      this.ctx.beginPath();
-      this.ctx.arc(x + size / 2, y + size / 2, size / 4, 0, Math.PI * 2);
-      this.ctx.fill();
+      if (tile.variant === "gem") {
+        this.drawDiamond(x + size / 2, y + size / 2, size / 2.4);
+      } else {
+        this.drawBomb(x + size / 2, y + size / 2, size / 2.8);
+      }
     }
     this.ctx.restore();
+  }
+
+  drawArrow(cx, cy, length, thickness, orientation) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
+    if (orientation === "horizontal") {
+      ctx.beginPath();
+      ctx.moveTo(cx - length / 2, cy - thickness / 2);
+      ctx.lineTo(cx + length / 2, cy - thickness / 2);
+      ctx.lineTo(cx + length / 2, cy - thickness);
+      ctx.lineTo(cx + length / 2 + 12, cy);
+      ctx.lineTo(cx + length / 2, cy + thickness);
+      ctx.lineTo(cx + length / 2, cy + thickness / 2);
+      ctx.lineTo(cx - length / 2, cy + thickness / 2);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(cx - thickness / 2, cy - length / 2);
+      ctx.lineTo(cx - thickness / 2, cy + length / 2);
+      ctx.lineTo(cx - thickness, cy + length / 2);
+      ctx.lineTo(cx, cy + length / 2 + 12);
+      ctx.lineTo(cx + thickness, cy + length / 2);
+      ctx.lineTo(cx + thickness / 2, cy + length / 2);
+      ctx.lineTo(cx + thickness / 2, cy - length / 2);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  drawDiamond(cx, cy, size) {
+    const ctx = this.ctx;
+    const gradient = ctx.createLinearGradient(cx - size, cy - size, cx + size, cy + size);
+    gradient.addColorStop(0, "rgba(255,255,255,0.95)");
+    gradient.addColorStop(1, "rgba(255,255,255,0.65)");
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - size);
+    ctx.lineTo(cx + size, cy);
+    ctx.lineTo(cx, cy + size);
+    ctx.lineTo(cx - size, cy);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  drawBomb(cx, cy, radius) {
+    const ctx = this.ctx;
+    ctx.fillStyle = "rgba(30,41,59,0.95)";
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.9)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius - 4, 0, Math.PI * 2);
+    ctx.stroke();
+    // Fuse
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(cx + radius / 2, cy - radius);
+    ctx.quadraticCurveTo(cx + radius, cy - radius - 6, cx + radius + 4, cy - radius - 2);
+    ctx.stroke();
   }
 
   roundRect(x, y, w, h, r) {

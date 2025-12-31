@@ -3,9 +3,9 @@
 // and includes booster generation/combination behaviour.
 
 const COLORS = [
-  "#f43f5e", // pink
+  "#f43f5e", // deep pink
   "#22c55e", // green
-  "#3b82f6", // blue
+  "#ec4899", // rosy pink replacing blue for clearer contrast
   "#f59e0b", // amber
   "#a855f7", // purple
   "#0ea5e9", // cyan for variety
@@ -43,11 +43,20 @@ class Tile {
 }
 
 class LevelConfig {
-  constructor({ moves, objectives }) {
+  constructor({ moves, objectives, targetTiles }) {
     this.moves = moves;
     this.objectives = objectives; // {colorHex: targetCount}
+    this.targetTiles = targetTiles;
   }
 }
+
+const LEVELS = [
+  new LevelConfig({ moves: 20, objectives: {}, targetTiles: 75 }),
+  new LevelConfig({ moves: 20, objectives: {}, targetTiles: 100 }),
+  new LevelConfig({ moves: 20, objectives: {}, targetTiles: 125 }),
+  new LevelConfig({ moves: 20, objectives: {}, targetTiles: 150 }),
+  new LevelConfig({ moves: 20, objectives: {}, targetTiles: 190 }),
+];
 
 class Board {
   constructor(size = BOARD_SIZE) {
@@ -459,15 +468,22 @@ class Game {
     this.renderer = new Renderer(canvas, this.board);
     this.state = GameState.IDLE;
     this.selected = null;
-    this.level = new LevelConfig({
-      moves: 30,
-      objectives: this.seedObjective(20),
-    });
+    this.levels = LEVELS;
+    this.levelIndex = 0;
+    this.level = this.levels[this.levelIndex];
     this.movesLeft = this.level.moves;
+    this.targetTiles = this.level.targetTiles;
+    this.clearedTiles = 0;
     this.objectives = { ...this.level.objectives };
     this.statusEl = document.getElementById("status");
     this.movesEl = document.getElementById("moves");
     this.objectiveEl = document.getElementById("objective");
+    this.gaugeCells = Array.from(document.querySelectorAll(".gauge__cell"));
+    this.clearedEl = document.getElementById("cleared");
+    this.targetEl = document.getElementById("target");
+    this.restartBtn = document.getElementById("restartBtn");
+    this.restartBtn.addEventListener("click", () => this.restartFromBeginning());
+    this.loadLevel(this.levelIndex);
     this.updateHud();
     this.bindInput(canvas);
     requestAnimationFrame(() => this.loop());
@@ -525,12 +541,50 @@ class Game {
     this.statusEl.textContent = newState;
   }
 
+  loadLevel(index) {
+    const clamped = Math.max(0, Math.min(index, this.levels.length - 1));
+    this.levelIndex = clamped;
+    this.level = this.levels[this.levelIndex];
+    this.movesLeft = this.level.moves;
+    this.targetTiles = this.level.targetTiles;
+    this.clearedTiles = 0;
+    this.objectives = { ...this.level.objectives };
+    this.board = new Board();
+    this.renderer.board = this.board;
+    this.renderer.animationQueue = [];
+    this.selected = null;
+    this.setState(GameState.IDLE);
+    this.updateHud();
+  }
+
+  restartFromBeginning() {
+    this.loadLevel(0);
+  }
+
+  restartLevel() {
+    this.loadLevel(this.levelIndex);
+  }
+
+  advanceLevel() {
+    const nextIndex = Math.min(this.levelIndex + 1, this.levels.length - 1);
+    this.loadLevel(nextIndex);
+  }
+
   updateHud() {
     this.movesEl.textContent = this.movesLeft;
-    const objectives = Object.entries(this.objectives)
-      .map(([color, remaining]) => `${remaining} of ${color}`)
-      .join(", ");
-    this.objectiveEl.textContent = objectives || "Completed!";
+    this.targetEl.textContent = this.targetTiles;
+    this.clearedEl.textContent = Math.min(this.clearedTiles, this.targetTiles);
+    this.updateGauge();
+    const objectives = `Level ${this.levelIndex + 1}: clear ${this.targetTiles} tiles`;
+    this.objectiveEl.textContent = objectives;
+  }
+
+  updateGauge() {
+    const ratio = this.targetTiles > 0 ? this.clearedTiles / this.targetTiles : 0;
+    const filled = Math.min(10, Math.floor(ratio * 10));
+    this.gaugeCells.forEach((cell, idx) => {
+      cell.classList.toggle("filled", idx < filled);
+    });
   }
 
   handleSwap(a, b) {
@@ -592,6 +646,7 @@ class Game {
   }
 
   countObjectives(cleared) {
+    this.clearedTiles += cleared.length;
     cleared.forEach(({ tile }) => {
       if (this.objectives[tile.color] > 0) {
         this.objectives[tile.color] -= 1;
@@ -600,13 +655,15 @@ class Game {
   }
 
   checkEndConditions() {
-    const remaining = Object.values(this.objectives).reduce((sum, v) => sum + Math.max(0, v), 0);
-    if (remaining === 0) {
+    const completed = this.clearedTiles >= this.targetTiles;
+    if (completed) {
       this.statusEl.textContent = "Level Complete!";
       this.setState(GameState.IDLE);
+      setTimeout(() => this.advanceLevel(), 300);
     } else if (this.movesLeft <= 0) {
       this.statusEl.textContent = "Out of moves";
       this.setState(GameState.IDLE);
+      setTimeout(() => this.restartLevel(), 300);
     }
   }
 

@@ -444,16 +444,21 @@ class Game {
 
     this.setState(GameState.SWAPPING);
     this.animateSwap(tileA, tileB, a, b, () => {
+      this.board.swap(a, b);
+      const postTileA = this.board.get(a.x, a.y);
+      const postTileB = this.board.get(b.x, b.y);
+
       // Booster + Booster combos resolve immediately without match detection.
-      const comboHandled = this.handleBoosterCombo(a, b, tileA, tileB);
+      const comboHandled = this.handleBoosterCombo(a, b, postTileA, postTileB);
       if (comboHandled) return;
 
-      this.board.swap(a, b);
       const matches = this.board.findMatches();
       if (matches.length === 0) {
         // Invalid move: revert swap.
-        this.board.swap(a, b);
-        this.animateSwap(tileA, tileB, b, a, () => this.setState(GameState.IDLE));
+        this.animateSwap(postTileA, postTileB, b, a, () => {
+          this.board.swap(a, b);
+          this.setState(GameState.IDLE);
+        });
         return;
       }
 
@@ -475,7 +480,6 @@ class Game {
     this.renderer.enqueue(animB);
 
     setTimeout(() => {
-      this.board.swap(posA, posB);
       onComplete?.();
     }, duration);
   }

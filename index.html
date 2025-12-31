@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Canvas Match-3 Puzzle</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="hud">
+      <div class="hud__item"><strong>Moves:</strong> <span id="moves">0</span></div>
+      <div class="hud__item"><strong>Objective:</strong> <span id="objective"></span></div>
+      <div class="hud__item"><strong>Status:</strong> <span id="status">Idle</span></div>
+    </header>
+    <canvas id="gameCanvas" width="540" height="540" aria-label="Match-3 board" role="img"></canvas>
+    <section class="instructions">
+      <h2>How to play</h2>
+      <ul>
+        <li>Swap adjacent tiles to create matches of three or more.</li>
+        <li>Match four to spawn a rocket. Match five (or T/L shape) to spawn a bomb.</li>
+        <li>Combining boosters triggers stronger effects.</li>
+        <li>Clear objectives before running out of moves.</li>
+      </ul>
+    </section>
+  </main>
+  <script type="module" src="src/game.js"></script>
+</body>
+</html>

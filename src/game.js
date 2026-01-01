@@ -2,13 +2,13 @@
 // The code separates board logic from rendering, keeps a clear state machine,
 // and includes booster generation/combination behaviour.
 
-// Pastel palette: red, orange, yellow, green, blue for clearer differentiation.
+// Bold primary palette (red, orange, yellow, green, blue) for maximum clarity.
 const COLORS = [
-  "#f3a6a6", // pastel red
-  "#f7c58b", // pastel orange
-  "#f7e8a4", // pastel yellow
-  "#a6dfb5", // pastel green
-  "#a4c8f5", // pastel blue
+  "#e74c3c", // red
+  "#ff9800", // orange
+  "#ffeb3b", // yellow
+  "#4caf50", // green
+  "#2196f3", // blue
 ];
 
 const TILE_SIZE = 60;
@@ -912,7 +912,7 @@ class Game {
       onComplete?.();
       return;
     }
-    const duration = 260;
+    const duration = 360; // Slightly slower bounce so falls feel readable
     const start = performance.now();
     movements.forEach((move) => {
       const startOffsetY = (move.fromY - move.toY) * this.renderer.tileOffset;

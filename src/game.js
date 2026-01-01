@@ -630,114 +630,220 @@ class Game {
     ctx.fill();
 
     const stage = Math.min(5, this.maxClearedLevel);
-    if (stage >= 1) this.drawShoe(ctx, w, h);
-    if (stage >= 2) this.drawVeil(ctx, w, h);
-    if (stage >= 3) this.drawBouquet(ctx, w, h);
-    if (stage >= 4) this.drawDress(ctx, w, h);
-    if (stage >= 5) this.drawGift(ctx, w, h);
+    // Layered keepsakes: uj anchored on the right, ciz central, pets around ciz,
+    // and dh seated to the left of uj as progress accumulates.
+    if (stage >= 2) this.drawCiz(ctx, w, h);
+    if (stage >= 3) this.drawSimba(ctx, w, h);
+    if (stage >= 4) this.drawPepper(ctx, w, h);
+    if (stage >= 5) this.drawDh(ctx, w, h);
+    if (stage >= 1) this.drawUj(ctx, w, h);
   }
 
-  drawShoe(ctx, w, h) {
+  drawHeart(ctx, x, y, size, color) {
     ctx.save();
-    ctx.translate(w * 0.26, h * 0.68);
-    ctx.rotate(-0.12);
-    ctx.fillStyle = "#f3a6a6";
-    ctx.strokeStyle = "rgba(255,255,255,0.4)";
-    ctx.lineWidth = 3;
+    ctx.translate(x, y);
+    ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.moveTo(-26, 6);
-    ctx.quadraticCurveTo(12, -14, 42, -4);
-    ctx.quadraticCurveTo(54, 2, 52, 12);
-    ctx.lineTo(14, 20);
-    ctx.quadraticCurveTo(-12, 22, -26, 6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  drawVeil(ctx, w, h) {
-    ctx.save();
-    ctx.translate(w * 0.56, h * 0.3);
-    const grad = ctx.createLinearGradient(0, 0, 0, h * 0.5);
-    grad.addColorStop(0, "rgba(255,255,255,0.7)");
-    grad.addColorStop(1, "rgba(244, 244, 255, 0.18)");
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.moveTo(-20, 0);
-    ctx.quadraticCurveTo(12, -18, 36, 0);
-    ctx.quadraticCurveTo(48, 80, 0, 120);
-    ctx.quadraticCurveTo(-44, 88, -20, 0);
+    ctx.moveTo(0, size / 4);
+    ctx.bezierCurveTo(0, -size / 2, -size, -size / 2, -size, size / 4);
+    ctx.bezierCurveTo(-size, size, 0, size * 1.4, 0, size * 1.8);
+    ctx.bezierCurveTo(0, size * 1.4, size, size, size, size / 4);
+    ctx.bezierCurveTo(size, -size / 2, 0, -size / 2, 0, size / 4);
     ctx.closePath();
     ctx.fill();
     ctx.restore();
   }
 
-  drawBouquet(ctx, w, h) {
+  drawUj(ctx, w, h) {
     ctx.save();
-    ctx.translate(w * 0.32, h * 0.45);
-    ctx.fillStyle = "#a6dfb5";
-    ctx.strokeStyle = "#78c58d";
+    ctx.translate(w * 0.76, h * 0.6);
+    ctx.fillStyle = "#222";
+    ctx.strokeStyle = "#111";
     ctx.lineWidth = 3;
+    // Suit body
     ctx.beginPath();
-    ctx.moveTo(-16, 10);
-    ctx.lineTo(12, 44);
-    ctx.lineTo(26, 36);
-    ctx.lineTo(-4, 4);
+    ctx.moveTo(-12, -30);
+    ctx.lineTo(12, -30);
+    ctx.lineTo(18, 34);
+    ctx.lineTo(-18, 34);
     ctx.closePath();
     ctx.fill();
-    ctx.stroke();
-
-    const blooms = ["#f3a6a6", "#f7c58b", "#f7e8a4", "#a4c8f5"];
-    blooms.forEach((c, i) => {
-      ctx.fillStyle = c;
-      ctx.beginPath();
-      ctx.arc(-12 + i * 14, -4 - (i % 2) * 6, 10, 0, Math.PI * 2);
-      ctx.fill();
-    });
+    // Bow tie
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.moveTo(-6, -30);
+    ctx.lineTo(0, -24);
+    ctx.lineTo(6, -30);
+    ctx.closePath();
+    ctx.fill();
+    // Head
+    ctx.fillStyle = "#f5d3c4";
+    ctx.beginPath();
+    ctx.ellipse(0, -48, 14, 16, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Hair
+    ctx.fillStyle = "#3b2f2c";
+    ctx.beginPath();
+    ctx.ellipse(0, -54, 15, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Hearts
+    this.drawHeart(ctx, 26, -70, 7, "#f44336");
+    this.drawHeart(ctx, 12, -82, 6, "#f44336");
+    this.drawHeart(ctx, 0, -70, 7, "#f44336");
     ctx.restore();
   }
 
-  drawDress(ctx, w, h) {
+  drawCiz(ctx, w, h) {
     ctx.save();
-    ctx.translate(w * 0.6, h * 0.62);
-    ctx.fillStyle = "#f5f3ff";
-    ctx.strokeStyle = "rgba(164, 200, 245, 0.65)";
+    ctx.translate(w * 0.5, h * 0.62);
+    // Dress
+    ctx.fillStyle = "#fff";
+    ctx.strokeStyle = "#e5e7eb";
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(0, -70);
-    ctx.quadraticCurveTo(-12, -32, -34, -12);
-    ctx.quadraticCurveTo(-12, 12, -30, 80);
-    ctx.lineTo(32, 80);
-    ctx.quadraticCurveTo(12, 12, 34, -10);
-    ctx.quadraticCurveTo(12, -32, 0, -70);
+    ctx.moveTo(-20, -26);
+    ctx.quadraticCurveTo(-46, 20, -26, 82);
+    ctx.quadraticCurveTo(0, 94, 26, 82);
+    ctx.quadraticCurveTo(46, 20, 20, -26);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
+    // Head
+    ctx.fillStyle = "#f5d3c4";
+    ctx.beginPath();
+    ctx.ellipse(0, -52, 16, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Hair
+    ctx.fillStyle = "#5b4336";
+    ctx.beginPath();
+    ctx.ellipse(0, -56, 18, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Veil
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
+    ctx.beginPath();
+    ctx.moveTo(-24, -56);
+    ctx.quadraticCurveTo(0, -72, 24, -56);
+    ctx.quadraticCurveTo(32, -20, 0, 4);
+    ctx.quadraticCurveTo(-32, -20, -24, -56);
+    ctx.closePath();
+    ctx.fill();
+    // Hearts
+    this.drawHeart(ctx, -18, -90, 6, "#f44336");
+    this.drawHeart(ctx, -4, -102, 7, "#f44336");
+    this.drawHeart(ctx, 14, -90, 6, "#f44336");
     ctx.restore();
   }
 
-  drawGift(ctx, w, h) {
+  drawSimba(ctx, w, h) {
     ctx.save();
-    ctx.translate(w * 0.48, h * 0.7);
-    ctx.fillStyle = "#a4c8f5";
-    ctx.strokeStyle = "rgba(255,255,255,0.6)";
+    ctx.translate(w * 0.34, h * 0.7);
+    ctx.fillStyle = "#5b4434";
+    ctx.strokeStyle = "#2f1d14";
     ctx.lineWidth = 3;
+    // Body
     ctx.beginPath();
-    ctx.rect(-34, -34, 68, 68);
+    ctx.ellipse(0, 0, 44, 18, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
+    // Legs
+    ctx.fillRect(-26, 12, 10, 12);
+    ctx.fillRect(10, 12, 10, 12);
+    // Head
+    ctx.fillStyle = "#5b4434";
+    ctx.beginPath();
+    ctx.ellipse(38, -6, 16, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Snout
+    ctx.fillStyle = "#f5d3c4";
+    ctx.beginPath();
+    ctx.ellipse(42, 0, 8, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Ear
+    ctx.fillStyle = "#2f1d14";
+    ctx.beginPath();
+    ctx.moveTo(28, -16);
+    ctx.lineTo(24, -34);
+    ctx.lineTo(38, -18);
+    ctx.closePath();
+    ctx.fill();
+    // Hearts
+    this.drawHeart(ctx, 10, -42, 5, "#f44336");
+    this.drawHeart(ctx, 22, -54, 6, "#f44336");
+    this.drawHeart(ctx, 34, -44, 5, "#f44336");
+    ctx.restore();
+  }
 
-    ctx.fillStyle = "#f472b6";
-    ctx.fillRect(-8, -34, 16, 68);
-    ctx.fillRect(-34, -6, 68, 12);
-
-    ctx.strokeStyle = "#f472b6";
+  drawPepper(ctx, w, h) {
+    ctx.save();
+    ctx.translate(w * 0.52, h * 0.76);
+    ctx.fillStyle = "#d98c3a";
+    ctx.strokeStyle = "#b46a24";
+    ctx.lineWidth = 3;
+    // Body
+    ctx.beginPath();
+    ctx.ellipse(0, 4, 32, 16, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Head
+    ctx.beginPath();
+    ctx.ellipse(-20, -8, 14, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Ear
+    ctx.beginPath();
+    ctx.moveTo(-28, -14);
+    ctx.lineTo(-38, -32);
+    ctx.lineTo(-22, -18);
+    ctx.closePath();
+    ctx.fill();
+    // Tail
+    ctx.strokeStyle = "#b46a24";
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.moveTo(-10, -34);
-    ctx.quadraticCurveTo(0, -56, 10, -34);
+    ctx.moveTo(32, 4);
+    ctx.quadraticCurveTo(48, -8, 40, -26);
     ctx.stroke();
+    // Hearts
+    this.drawHeart(ctx, -10, -46, 5, "#f44336");
+    this.drawHeart(ctx, 2, -58, 6, "#f44336");
+    this.drawHeart(ctx, 16, -46, 5, "#f44336");
+    ctx.restore();
+  }
+
+  drawDh(ctx, w, h) {
+    ctx.save();
+    ctx.translate(w * 0.64, h * 0.74);
+    ctx.fillStyle = "#f6f0e8";
+    ctx.strokeStyle = "#d4c9b8";
+    ctx.lineWidth = 3;
+    // Body
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 30, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Patch
+    ctx.fillStyle = "#3c2f2a";
+    ctx.beginPath();
+    ctx.ellipse(-8, -2, 10, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Head
+    ctx.fillStyle = "#f6f0e8";
+    ctx.beginPath();
+    ctx.ellipse(-20, -8, 14, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Ear
+    ctx.fillStyle = "#d99559";
+    ctx.beginPath();
+    ctx.moveTo(-30, -12);
+    ctx.lineTo(-44, -32);
+    ctx.lineTo(-24, -18);
+    ctx.closePath();
+    ctx.fill();
+    // Hearts
+    this.drawHeart(ctx, 0, -44, 5, "#f44336");
+    this.drawHeart(ctx, 12, -56, 6, "#f44336");
+    this.drawHeart(ctx, 24, -44, 5, "#f44336");
     ctx.restore();
   }
 

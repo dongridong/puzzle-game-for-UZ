@@ -113,6 +113,26 @@ body {
   transform: scale(0.95);
 }
 
+.celebration {
+  margin: 4px 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.28), rgba(244, 114, 182, 0.22));
+  color: #f8fafc;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.celebration.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 canvas {
   background: var(--grid);
   border-radius: 16px;

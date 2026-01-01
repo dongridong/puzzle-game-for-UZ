@@ -2,13 +2,13 @@
 // The code separates board logic from rendering, keeps a clear state machine,
 // and includes booster generation/combination behaviour.
 
+// Pastel palette: red, orange, yellow, green, blue for clearer differentiation.
 const COLORS = [
-  "#f43f5e", // deep pink
-  "#22c55e", // green
-  "#ec4899", // rosy pink replacing blue for clearer contrast
-  "#f59e0b", // amber
-  "#a855f7", // purple
-  "#0ea5e9", // cyan for variety
+  "#f3a6a6", // pastel red
+  "#f7c58b", // pastel orange
+  "#f7e8a4", // pastel yellow
+  "#a6dfb5", // pastel green
+  "#a4c8f5", // pastel blue
 ];
 
 const TILE_SIZE = 60;
@@ -468,6 +468,7 @@ class Game {
     this.renderer = new Renderer(canvas, this.board);
     this.state = GameState.IDLE;
     this.selected = null;
+    this.devRestartCount = 0;
     this.levels = LEVELS;
     this.levelIndex = 0;
     this.level = this.levels[this.levelIndex];
@@ -483,6 +484,8 @@ class Game {
     this.targetEl = document.getElementById("target");
     this.restartBtn = document.getElementById("restartBtn");
     this.restartBtn.addEventListener("click", () => this.restartFromBeginning());
+    this.celebrationEl = document.getElementById("celebration");
+    this.celebrationTimeout = null;
     this.loadLevel(this.levelIndex);
     this.updateHud();
     this.bindInput(canvas);
@@ -554,19 +557,30 @@ class Game {
     this.renderer.animationQueue = [];
     this.selected = null;
     this.setState(GameState.IDLE);
+    this.hideCelebration();
     this.updateHud();
   }
 
   restartFromBeginning() {
-    this.loadLevel(0);
+    this.devRestartCount += 1;
+    if (this.devRestartCount >= 10) {
+      this.devRestartCount = 0;
+      this.clearedTiles = this.targetTiles;
+      this.updateHud();
+      this.triggerLevelComplete("Developer clear!");
+      return;
+    }
+    this.restartLevel(false);
   }
 
-  restartLevel() {
+  restartLevel(resetDevCounter = true) {
+    if (resetDevCounter) this.devRestartCount = 0;
     this.loadLevel(this.levelIndex);
   }
 
   advanceLevel() {
     const nextIndex = Math.min(this.levelIndex + 1, this.levels.length - 1);
+    this.devRestartCount = 0;
     this.loadLevel(nextIndex);
   }
 
@@ -657,13 +671,37 @@ class Game {
   checkEndConditions() {
     const completed = this.clearedTiles >= this.targetTiles;
     if (completed) {
-      this.statusEl.textContent = "Level Complete!";
-      this.setState(GameState.IDLE);
-      setTimeout(() => this.advanceLevel(), 300);
+      this.triggerLevelComplete("Level Complete!");
     } else if (this.movesLeft <= 0) {
       this.statusEl.textContent = "Out of moves";
       this.setState(GameState.IDLE);
       setTimeout(() => this.restartLevel(), 300);
+    }
+  }
+
+  triggerLevelComplete(message) {
+    this.statusEl.textContent = message;
+    this.showCelebration();
+    this.setState(GameState.IDLE);
+    setTimeout(() => this.advanceLevel(), 600);
+  }
+
+  showCelebration() {
+    if (!this.celebrationEl) return;
+    if (this.celebrationTimeout) {
+      clearTimeout(this.celebrationTimeout);
+    }
+    this.celebrationEl.textContent = `축하합니다! Level ${this.levelIndex + 1} 클리어!`;
+    this.celebrationEl.classList.add("is-visible");
+    this.celebrationTimeout = setTimeout(() => this.hideCelebration(), 1400);
+  }
+
+  hideCelebration() {
+    if (!this.celebrationEl) return;
+    this.celebrationEl.classList.remove("is-visible");
+    if (this.celebrationTimeout) {
+      clearTimeout(this.celebrationTimeout);
+      this.celebrationTimeout = null;
     }
   }
 

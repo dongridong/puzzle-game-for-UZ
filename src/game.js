@@ -469,6 +469,7 @@ class Game {
     this.state = GameState.IDLE;
     this.selected = null;
     this.devRestartCount = 0;
+    this.maxClearedLevel = 0; // tracks cumulative keepsake art layers
     this.levels = LEVELS;
     this.levelIndex = 0;
     this.level = this.levels[this.levelIndex];
@@ -486,8 +487,11 @@ class Game {
     this.restartBtn.addEventListener("click", () => this.restartFromBeginning());
     this.celebrationEl = document.getElementById("celebration");
     this.celebrationTimeout = null;
+    this.artCanvas = document.getElementById("artCanvas");
+    this.artCtx = this.artCanvas?.getContext("2d");
     this.loadLevel(this.levelIndex);
     this.updateHud();
+    this.renderArt();
     this.bindInput(canvas);
     requestAnimationFrame(() => this.loop());
   }
@@ -559,6 +563,7 @@ class Game {
     this.setState(GameState.IDLE);
     this.hideCelebration();
     this.updateHud();
+    this.renderArt();
   }
 
   restartFromBeginning() {
@@ -599,6 +604,141 @@ class Game {
     this.gaugeCells.forEach((cell, idx) => {
       cell.classList.toggle("filled", idx < filled);
     });
+  }
+
+  renderArt() {
+    if (!this.artCtx || !this.artCanvas) return;
+    const ctx = this.artCtx;
+    const { width: w, height: h } = this.artCanvas;
+    ctx.clearRect(0, 0, w, h);
+
+    // Base backdrop
+    const sky = ctx.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, "#1d2a46");
+    sky.addColorStop(1, "#0f172a");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h);
+
+    // Soft floor
+    ctx.fillStyle = "#101827";
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.78);
+    ctx.quadraticCurveTo(w * 0.5, h * 0.72, w, h * 0.8);
+    ctx.lineTo(w, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
+    ctx.fill();
+
+    const stage = Math.min(5, this.maxClearedLevel);
+    if (stage >= 1) this.drawShoe(ctx, w, h);
+    if (stage >= 2) this.drawVeil(ctx, w, h);
+    if (stage >= 3) this.drawBouquet(ctx, w, h);
+    if (stage >= 4) this.drawDress(ctx, w, h);
+    if (stage >= 5) this.drawGift(ctx, w, h);
+  }
+
+  drawShoe(ctx, w, h) {
+    ctx.save();
+    ctx.translate(w * 0.26, h * 0.68);
+    ctx.rotate(-0.12);
+    ctx.fillStyle = "#f3a6a6";
+    ctx.strokeStyle = "rgba(255,255,255,0.4)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-26, 6);
+    ctx.quadraticCurveTo(12, -14, 42, -4);
+    ctx.quadraticCurveTo(54, 2, 52, 12);
+    ctx.lineTo(14, 20);
+    ctx.quadraticCurveTo(-12, 22, -26, 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  drawVeil(ctx, w, h) {
+    ctx.save();
+    ctx.translate(w * 0.56, h * 0.3);
+    const grad = ctx.createLinearGradient(0, 0, 0, h * 0.5);
+    grad.addColorStop(0, "rgba(255,255,255,0.7)");
+    grad.addColorStop(1, "rgba(244, 244, 255, 0.18)");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(-20, 0);
+    ctx.quadraticCurveTo(12, -18, 36, 0);
+    ctx.quadraticCurveTo(48, 80, 0, 120);
+    ctx.quadraticCurveTo(-44, 88, -20, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  drawBouquet(ctx, w, h) {
+    ctx.save();
+    ctx.translate(w * 0.32, h * 0.45);
+    ctx.fillStyle = "#a6dfb5";
+    ctx.strokeStyle = "#78c58d";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-16, 10);
+    ctx.lineTo(12, 44);
+    ctx.lineTo(26, 36);
+    ctx.lineTo(-4, 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    const blooms = ["#f3a6a6", "#f7c58b", "#f7e8a4", "#a4c8f5"];
+    blooms.forEach((c, i) => {
+      ctx.fillStyle = c;
+      ctx.beginPath();
+      ctx.arc(-12 + i * 14, -4 - (i % 2) * 6, 10, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  drawDress(ctx, w, h) {
+    ctx.save();
+    ctx.translate(w * 0.6, h * 0.62);
+    ctx.fillStyle = "#f5f3ff";
+    ctx.strokeStyle = "rgba(164, 200, 245, 0.65)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, -70);
+    ctx.quadraticCurveTo(-12, -32, -34, -12);
+    ctx.quadraticCurveTo(-12, 12, -30, 80);
+    ctx.lineTo(32, 80);
+    ctx.quadraticCurveTo(12, 12, 34, -10);
+    ctx.quadraticCurveTo(12, -32, 0, -70);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  drawGift(ctx, w, h) {
+    ctx.save();
+    ctx.translate(w * 0.48, h * 0.7);
+    ctx.fillStyle = "#a4c8f5";
+    ctx.strokeStyle = "rgba(255,255,255,0.6)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.rect(-34, -34, 68, 68);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#f472b6";
+    ctx.fillRect(-8, -34, 16, 68);
+    ctx.fillRect(-34, -6, 68, 12);
+
+    ctx.strokeStyle = "#f472b6";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(-10, -34);
+    ctx.quadraticCurveTo(0, -56, 10, -34);
+    ctx.stroke();
+    ctx.restore();
   }
 
   handleSwap(a, b) {
@@ -681,6 +821,8 @@ class Game {
 
   triggerLevelComplete(message) {
     this.statusEl.textContent = message;
+    this.maxClearedLevel = Math.max(this.maxClearedLevel, this.levelIndex + 1);
+    this.renderArt();
     this.showCelebration();
     this.setState(GameState.IDLE);
     setTimeout(() => this.advanceLevel(), 600);

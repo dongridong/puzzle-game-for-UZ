@@ -7,9 +7,10 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="container">
-    <header class="hud">
-      <div class="hud__item"><strong>Moves:</strong> <span id="moves">0</span></div>
+  <div class="app">
+    <main class="container">
+      <header class="hud">
+        <div class="hud__item"><strong>Moves:</strong> <span id="moves">0</span></div>
       <div class="hud__item hud__progress">
         <div class="hud__progress-label"><strong>Progress</strong></div>
         <div class="gauge" aria-label="progress gauge">
@@ -34,20 +35,28 @@
         </svg>
       </button>
     </header>
-    <div id="celebration" class="celebration" role="status" aria-live="polite"></div>
-    <canvas id="gameCanvas" width="540" height="540" aria-label="Match-3 board" role="img"></canvas>
-    <section class="instructions">
-      <h2>How to play</h2>
-      <ul>
+      <div id="celebration" class="celebration" role="status" aria-live="polite"></div>
+      <canvas id="gameCanvas" width="540" height="540" aria-label="Match-3 board" role="img"></canvas>
+      <section class="instructions">
+        <h2>How to play</h2>
+        <ul>
         <li>Swap adjacent tiles to create matches of three or more.</li>
         <li>
           Match four to spawn a directional rocket (arrow icon). Match five in a line creates a gem, while T/L matches spawn a bomb.
         </li>
         <li>Combining boosters triggers stronger effects.</li>
         <li>Clear objectives before running out of moves.</li>
-      </ul>
-    </section>
-  </main>
+        </ul>
+      </section>
+    </main>
+    <aside class="side-panel">
+      <div class="side-panel__header">
+        <h2>Level Keepsakes</h2>
+        <p>클리어할 때마다 오른쪽 그림이 채워집니다.</p>
+      </div>
+      <canvas id="artCanvas" width="240" height="360" aria-label="Level keepsake art"></canvas>
+    </aside>
+  </div>
   <script type="module" src="src/game.js"></script>
 </body>
 </html>

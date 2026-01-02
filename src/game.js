@@ -489,12 +489,57 @@ class Game {
     this.celebrationTimeout = null;
     this.artCanvas = document.getElementById("artCanvas");
     this.artCtx = this.artCanvas?.getContext("2d");
+    this.assets = {};
+    this.loadAssets();
     this.loadLevel(this.levelIndex);
     this.updateHud();
     this.renderArt();
     this.bindInput(canvas);
     requestAnimationFrame(() => this.loop());
   }
+
+  loadAssets() {
+    this.assetsLoaded = false;
+    this.assets = {};
+  
+    const loadImage = (key, src) =>
+      new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve({ key, img, ok: true });
+        img.onerror = () => resolve({ key, img: null, ok: false, src });
+        img.src = src;
+      });
+  
+    Promise.all([
+      loadImage("dh", "assets/dh.png"),
+      loadImage("uj", "assets/uj.png"),
+      loadImage("ciz", "assets/ciz.png"),
+      loadImage("pepper", "assets/pepper.png"),
+      loadImage("simba", "assets/simba.png"),
+    ]).then((results) => {
+      results.forEach(({ key, img, ok, src }) => {
+        if (!ok) {
+          console.warn(`[assets] failed to load: ${key} (${src})`);
+          this.assets[key] = null;
+          return;
+        }
+        this.assets[key] = img;
+      });
+  
+      this.assetsLoaded = true;
+      this.renderArt(); // 에셋 로드 완료 후 재렌더
+    });
+  }
+  
+  
+  drawCharacterImage(ctx, img, cx, cy, scale = 0.6) {
+    if (!img || !img.complete || img.naturalWidth === 0) return;
+  
+    const w = img.naturalWidth * scale;
+    const h = img.naturalHeight * scale;
+  
+    ctx.drawImage(img, cx - w / 2, cy - h / 2, w, h);
+  }  
 
   seedObjective(count) {
     const objectives = {};
@@ -610,15 +655,16 @@ class Game {
     if (!this.artCtx || !this.artCanvas) return;
     const ctx = this.artCtx;
     const { width: w, height: h } = this.artCanvas;
+  
     ctx.clearRect(0, 0, w, h);
-
-    // Base backdrop
+  
+    // Base backdrop (항상 그리기)
     const sky = ctx.createLinearGradient(0, 0, 0, h);
     sky.addColorStop(0, "#1d2a46");
     sky.addColorStop(1, "#0f172a");
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, w, h);
-
+  
     // Soft floor
     ctx.fillStyle = "#101827";
     ctx.beginPath();
@@ -628,16 +674,20 @@ class Game {
     ctx.lineTo(0, h);
     ctx.closePath();
     ctx.fill();
-
+  
+    // 에셋이 아직이면 배경만 유지
+    if (!this.assetsLoaded) return;
+  
+    // 여기서 절대 maxClearedLevel을 증가시키지 마세요 (버그)
     const stage = Math.min(5, this.maxClearedLevel);
-    // Layered keepsakes: uj anchored on the right, ciz central, pets around ciz,
-    // and dh seated to the left of uj as progress accumulates.
+  
     if (stage >= 2) this.drawCiz(ctx, w, h);
     if (stage >= 3) this.drawSimba(ctx, w, h);
     if (stage >= 4) this.drawPepper(ctx, w, h);
     if (stage >= 5) this.drawDh(ctx, w, h);
     if (stage >= 1) this.drawUj(ctx, w, h);
   }
+  
 
   drawHeart(ctx, x, y, size, color) {
     ctx.save();
@@ -655,196 +705,53 @@ class Game {
   }
 
   drawUj(ctx, w, h) {
-    ctx.save();
-    ctx.translate(w * 0.76, h * 0.6);
-    ctx.fillStyle = "#222";
-    ctx.strokeStyle = "#111";
-    ctx.lineWidth = 3;
-    // Suit body
-    ctx.beginPath();
-    ctx.moveTo(-12, -30);
-    ctx.lineTo(12, -30);
-    ctx.lineTo(18, 34);
-    ctx.lineTo(-18, 34);
-    ctx.closePath();
-    ctx.fill();
-    // Bow tie
-    ctx.fillStyle = "#fff";
-    ctx.beginPath();
-    ctx.moveTo(-6, -30);
-    ctx.lineTo(0, -24);
-    ctx.lineTo(6, -30);
-    ctx.closePath();
-    ctx.fill();
-    // Head
-    ctx.fillStyle = "#f5d3c4";
-    ctx.beginPath();
-    ctx.ellipse(0, -48, 14, 16, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Hair
-    ctx.fillStyle = "#3b2f2c";
-    ctx.beginPath();
-    ctx.ellipse(0, -54, 15, 9, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Hearts
-    this.drawHeart(ctx, 26, -70, 7, "#f44336");
-    this.drawHeart(ctx, 12, -82, 6, "#f44336");
-    this.drawHeart(ctx, 0, -70, 7, "#f44336");
-    ctx.restore();
+    this.drawCharacterImage(
+      ctx,
+      this.assets.uj,
+      w * 0.76,
+      h * 0.60,
+      0.6
+    );
   }
-
+  
   drawCiz(ctx, w, h) {
-    ctx.save();
-    ctx.translate(w * 0.5, h * 0.62);
-    // Dress
-    ctx.fillStyle = "#fff";
-    ctx.strokeStyle = "#e5e7eb";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(-20, -26);
-    ctx.quadraticCurveTo(-46, 20, -26, 82);
-    ctx.quadraticCurveTo(0, 94, 26, 82);
-    ctx.quadraticCurveTo(46, 20, 20, -26);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    // Head
-    ctx.fillStyle = "#f5d3c4";
-    ctx.beginPath();
-    ctx.ellipse(0, -52, 16, 18, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Hair
-    ctx.fillStyle = "#5b4336";
-    ctx.beginPath();
-    ctx.ellipse(0, -56, 18, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Veil
-    ctx.fillStyle = "rgba(255,255,255,0.6)";
-    ctx.beginPath();
-    ctx.moveTo(-24, -56);
-    ctx.quadraticCurveTo(0, -72, 24, -56);
-    ctx.quadraticCurveTo(32, -20, 0, 4);
-    ctx.quadraticCurveTo(-32, -20, -24, -56);
-    ctx.closePath();
-    ctx.fill();
-    // Hearts
-    this.drawHeart(ctx, -18, -90, 6, "#f44336");
-    this.drawHeart(ctx, -4, -102, 7, "#f44336");
-    this.drawHeart(ctx, 14, -90, 6, "#f44336");
-    ctx.restore();
+    this.drawCharacterImage(
+      ctx,
+      this.assets.ciz,
+      w * 0.50,
+      h * 0.62,
+      0.65
+    );
   }
 
   drawSimba(ctx, w, h) {
-    ctx.save();
-    ctx.translate(w * 0.34, h * 0.7);
-    ctx.fillStyle = "#5b4434";
-    ctx.strokeStyle = "#2f1d14";
-    ctx.lineWidth = 3;
-    // Body
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 44, 18, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    // Legs
-    ctx.fillRect(-26, 12, 10, 12);
-    ctx.fillRect(10, 12, 10, 12);
-    // Head
-    ctx.fillStyle = "#5b4434";
-    ctx.beginPath();
-    ctx.ellipse(38, -6, 16, 14, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Snout
-    ctx.fillStyle = "#f5d3c4";
-    ctx.beginPath();
-    ctx.ellipse(42, 0, 8, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Ear
-    ctx.fillStyle = "#2f1d14";
-    ctx.beginPath();
-    ctx.moveTo(28, -16);
-    ctx.lineTo(24, -34);
-    ctx.lineTo(38, -18);
-    ctx.closePath();
-    ctx.fill();
-    // Hearts
-    this.drawHeart(ctx, 10, -42, 5, "#f44336");
-    this.drawHeart(ctx, 22, -54, 6, "#f44336");
-    this.drawHeart(ctx, 34, -44, 5, "#f44336");
-    ctx.restore();
+    this.drawCharacterImage(
+      ctx,
+      this.assets.simba,
+      w * 0.34,
+      h * 0.70,
+      0.55
+    );
   }
 
   drawPepper(ctx, w, h) {
-    ctx.save();
-    ctx.translate(w * 0.52, h * 0.76);
-    ctx.fillStyle = "#d98c3a";
-    ctx.strokeStyle = "#b46a24";
-    ctx.lineWidth = 3;
-    // Body
-    ctx.beginPath();
-    ctx.ellipse(0, 4, 32, 16, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    // Head
-    ctx.beginPath();
-    ctx.ellipse(-20, -8, 14, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    // Ear
-    ctx.beginPath();
-    ctx.moveTo(-28, -14);
-    ctx.lineTo(-38, -32);
-    ctx.lineTo(-22, -18);
-    ctx.closePath();
-    ctx.fill();
-    // Tail
-    ctx.strokeStyle = "#b46a24";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(32, 4);
-    ctx.quadraticCurveTo(48, -8, 40, -26);
-    ctx.stroke();
-    // Hearts
-    this.drawHeart(ctx, -10, -46, 5, "#f44336");
-    this.drawHeart(ctx, 2, -58, 6, "#f44336");
-    this.drawHeart(ctx, 16, -46, 5, "#f44336");
-    ctx.restore();
+    this.drawCharacterImage(
+      ctx,
+      this.assets.pepper,
+      w * 0.52,
+      h * 0.76,
+      0.55
+    );
   }
 
   drawDh(ctx, w, h) {
-    ctx.save();
-    ctx.translate(w * 0.64, h * 0.74);
-    ctx.fillStyle = "#f6f0e8";
-    ctx.strokeStyle = "#d4c9b8";
-    ctx.lineWidth = 3;
-    // Body
-    ctx.beginPath();
-    ctx.ellipse(0, 6, 30, 14, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    // Patch
-    ctx.fillStyle = "#3c2f2a";
-    ctx.beginPath();
-    ctx.ellipse(-8, -2, 10, 8, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Head
-    ctx.fillStyle = "#f6f0e8";
-    ctx.beginPath();
-    ctx.ellipse(-20, -8, 14, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    // Ear
-    ctx.fillStyle = "#d99559";
-    ctx.beginPath();
-    ctx.moveTo(-30, -12);
-    ctx.lineTo(-44, -32);
-    ctx.lineTo(-24, -18);
-    ctx.closePath();
-    ctx.fill();
-    // Hearts
-    this.drawHeart(ctx, 0, -44, 5, "#f44336");
-    this.drawHeart(ctx, 12, -56, 6, "#f44336");
-    this.drawHeart(ctx, 24, -44, 5, "#f44336");
-    ctx.restore();
+    this.drawCharacterImage(
+      ctx,
+      this.assets.dh,
+      w * 0.64,
+      h * 0.74,
+      0.6
+    );
   }
 
   handleSwap(a, b) {

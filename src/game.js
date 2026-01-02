@@ -4,11 +4,11 @@
 
 // Bold primary palette (red, orange, yellow, green, blue) for maximum clarity.
 const COLORS = [
-  "#e74c3c", // red
-  "#ff9800", // orange
-  "#ffeb3b", // yellow
-  "#4caf50", // green
-  "#2196f3", // blue
+  "#FFB3A7", // red
+  "#FFD6A5", // orange
+  "#CDB4DB", // yellow
+  "#BDE0FE", // green
+  "#B8E0D2", // blue
 ];
 
 const TILE_SIZE = 60;
@@ -513,7 +513,7 @@ class Game {
     Promise.all([
       loadImage("dh", "assets/dh.png"),
       loadImage("uj", "assets/uj.png"),
-      loadImage("ciz", "assets/ciz.png"),
+      loadImage("chedda", "assets/chedda.png"),
       loadImage("pepper", "assets/pepper.png"),
       loadImage("simba", "assets/simba.png"),
     ]).then((results) => {
@@ -681,7 +681,7 @@ class Game {
     // 여기서 절대 maxClearedLevel을 증가시키지 마세요 (버그)
     const stage = Math.min(5, this.maxClearedLevel);
   
-    if (stage >= 2) this.drawCiz(ctx, w, h);
+    if (stage >= 2) this.drawChedda(ctx, w, h);
     if (stage >= 3) this.drawSimba(ctx, w, h);
     if (stage >= 4) this.drawPepper(ctx, w, h);
     if (stage >= 5) this.drawDh(ctx, w, h);
@@ -714,10 +714,10 @@ class Game {
     );
   }
   
-  drawCiz(ctx, w, h) {
+  drawChedda(ctx, w, h) {
     this.drawCharacterImage(
       ctx,
-      this.assets.ciz,
+      this.assets.chedda,
       w * 0.50,
       h * 0.62,
       0.65

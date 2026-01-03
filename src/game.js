@@ -532,14 +532,15 @@ class Game {
   }
   
   
-  drawCharacterImage(ctx, img, cx, cy, scale = 0.6) {
+  drawCharacterImage(ctx, img, cx, cy, scale = 0.6, anchor = "center") {
     if (!img || !img.complete || img.naturalWidth === 0) return;
-  
+
     const w = img.naturalWidth * scale;
     const h = img.naturalHeight * scale;
-  
-    ctx.drawImage(img, cx - w / 2, cy - h / 2, w, h);
-  }  
+    const y = anchor === "bottom" ? cy - h : cy - h / 2;
+
+    ctx.drawImage(img, cx - w / 2, y, w, h);
+  }
 
   seedObjective(count) {
     const objectives = {};
@@ -709,18 +710,20 @@ class Game {
       ctx,
       this.assets.uj,
       w * 0.76,
-      h * 0.60,
-      0.6
+      h * 0.80,
+      0.6,
+      "bottom"
     );
   }
-  
+
   drawSimAndChe(ctx, w, h) {
     this.drawCharacterImage(
       ctx,
       this.assets.simandche,
       w * 0.46,
-      h * 0.66,
-      0.62
+      h * 0.86,
+      0.62,
+      "bottom"
     );
   }
 
@@ -729,8 +732,9 @@ class Game {
       ctx,
       this.assets.pepper,
       w * 0.52,
-      h * 0.76,
-      0.55
+      h * 0.88,
+      0.55,
+      "bottom"
     );
   }
 
@@ -739,8 +743,9 @@ class Game {
       ctx,
       this.assets.dh,
       w * 0.64,
-      h * 0.74,
-      0.6
+      h * 0.85,
+      0.6,
+      "bottom"
     );
   }
 

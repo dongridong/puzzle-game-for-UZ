@@ -739,8 +739,8 @@ class Game {
       ctx,
       this.assets.dh,
       w * 0.40,
-      h * 0.74,
-      1.35
+      h * 0.58,
+      1.0125
     );
   }
 

@@ -708,7 +708,7 @@ class Game {
     this.drawCharacterImage(
       ctx,
       this.assets.uj,
-      w * 0.58,
+      w * 0.60,
       h * 0.74,
       1.35
     );
@@ -719,8 +719,8 @@ class Game {
       ctx,
       this.assets.simandche,
       w * 0.62,
-      h * 0.88,
-      0.65
+      h * 0.83,
+      1.3
     );
   }
 
@@ -729,8 +729,8 @@ class Game {
       ctx,
       this.assets.pepper,
       w * 0.38,
-      h * 0.88,
-      0.55
+      h * 0.83,
+      1.1
     );
   }
 
@@ -738,7 +738,7 @@ class Game {
     this.drawCharacterImage(
       ctx,
       this.assets.dh,
-      w * 0.42,
+      w * 0.40,
       h * 0.74,
       1.35
     );

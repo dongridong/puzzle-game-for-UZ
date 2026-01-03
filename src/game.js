@@ -481,7 +481,7 @@ class Game {
         key: "simandche",
         src: "assets/simandche.png",
         draw: (ctx, w, h) =>
-          this.drawCharacterImage(ctx, this.assets.simandche, w * 0.46, h * 0.66, 0.62),
+          this.drawCharacterImage(ctx, this.assets.simandche, w * 0.46, h * 0.7, 0.55),
       },
       {
         key: "pepper",
@@ -686,14 +686,11 @@ class Game {
     ctx.clearRect(0, 0, w, h);
   
     // Base backdrop (항상 그리기)
-    const sky = ctx.createLinearGradient(0, 0, 0, h);
-    sky.addColorStop(0, "#1d2a46");
-    sky.addColorStop(1, "#0f172a");
-    ctx.fillStyle = sky;
+    ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, w, h);
-  
+
     // Soft floor
-    ctx.fillStyle = "#101827";
+    ctx.fillStyle = "#f2f4f7";
     ctx.beginPath();
     ctx.moveTo(0, h * 0.78);
     ctx.quadraticCurveTo(w * 0.5, h * 0.72, w, h * 0.8);

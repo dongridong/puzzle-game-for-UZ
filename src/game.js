@@ -708,18 +708,18 @@ class Game {
     this.drawCharacterImage(
       ctx,
       this.assets.uj,
-      w * 0.76,
-      h * 0.60,
+      w * 0.56,
+      h * 0.74,
       0.6
     );
   }
-  
+
   drawSimandche(ctx, w, h) {
     this.drawCharacterImage(
       ctx,
       this.assets.simandche,
-      w * 0.50,
-      h * 0.62,
+      w * 0.66,
+      h * 0.86,
       0.65
     );
   }
@@ -728,8 +728,8 @@ class Game {
     this.drawCharacterImage(
       ctx,
       this.assets.pepper,
-      w * 0.52,
-      h * 0.76,
+      w * 0.38,
+      h * 0.86,
       0.55
     );
   }
@@ -738,7 +738,7 @@ class Game {
     this.drawCharacterImage(
       ctx,
       this.assets.dh,
-      w * 0.64,
+      w * 0.44,
       h * 0.74,
       0.6
     );
@@ -749,7 +749,7 @@ class Game {
       ctx,
       this.assets.text,
       w * 0.50,
-      h * 0.60,
+      h * 0.18,
       0.6
     );
   }

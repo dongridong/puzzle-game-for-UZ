@@ -2,11 +2,11 @@
 // The code separates board logic from rendering, keeps a clear state machine,
 // and includes booster generation/combination behaviour.
 
-// Pastel palette for softer block colors.
+// Pastel palette for softer block colors while keeping the classic hue order.
 const COLORS = [
-  "#FFB3A7", // pastel coral
-  "#FFD6A5", // pastel yellow
-  "#CDB4DB", // lavender
+  "#FFB3A7", // pastel coral (red)
+  "#FFD6A5", // pastel yellow (amber)
+  "#CDB4DB", // lavender (purple)
   "#BDE0FE", // powder blue
   "#B8E0D2", // sage green
 ];

@@ -2,13 +2,13 @@
 // The code separates board logic from rendering, keeps a clear state machine,
 // and includes booster generation/combination behaviour.
 
-// Bold primary palette (red, orange, yellow, green, blue) for maximum clarity.
+// Pastel palette for softer block colors.
 const COLORS = [
-  "#FFB3A7", // red
-  "#FFD6A5", // orange
-  "#CDB4DB", // yellow
-  "#BDE0FE", // green
-  "#B8E0D2", // blue
+  "#FFB3A7", // pastel coral
+  "#FFD6A5", // pastel yellow
+  "#CDB4DB", // lavender
+  "#BDE0FE", // powder blue
+  "#B8E0D2", // sage green
 ];
 
 const TILE_SIZE = 60;

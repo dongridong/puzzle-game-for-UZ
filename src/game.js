@@ -470,6 +470,37 @@ class Game {
     this.selected = null;
     this.devRestartCount = 0;
     this.maxClearedLevel = 0; // tracks cumulative keepsake art layers
+    this.keepsakeLayers = [
+      {
+        key: "uj",
+        src: "assets/uj.png",
+        draw: (ctx, w, h) =>
+          this.drawCharacterImage(ctx, this.assets.uj, w * 0.76, h * 0.6, 0.6),
+      },
+      {
+        key: "simandche",
+        src: "assets/simandche.png",
+        draw: (ctx, w, h) =>
+          this.drawCharacterImage(ctx, this.assets.simandche, w * 0.46, h * 0.66, 0.62),
+      },
+      {
+        key: "pepper",
+        src: "assets/pepper.png",
+        draw: (ctx, w, h) =>
+          this.drawCharacterImage(ctx, this.assets.pepper, w * 0.52, h * 0.76, 0.55),
+      },
+      {
+        key: "dh",
+        src: "assets/dh.png",
+        draw: (ctx, w, h) =>
+          this.drawCharacterImage(ctx, this.assets.dh, w * 0.64, h * 0.74, 0.6),
+      },
+      {
+        key: "text",
+        src: "assets/text.png",
+        draw: (ctx, w, h) => this.drawCharacterImage(ctx, this.assets.text, w * 0.5, h * 0.34, 0.72),
+      },
+    ];
     this.levels = LEVELS;
     this.levelIndex = 0;
     this.level = this.levels[this.levelIndex];
@@ -501,7 +532,7 @@ class Game {
   loadAssets() {
     this.assetsLoaded = false;
     this.assets = {};
-  
+
     const loadImage = (key, src) =>
       new Promise((resolve) => {
         const img = new Image();
@@ -509,26 +540,22 @@ class Game {
         img.onerror = () => resolve({ key, img: null, ok: false, src });
         img.src = src;
       });
-  
-    Promise.all([
-      loadImage("uj", "assets/uj.png"),
-      loadImage("simandche", "assets/simandche.png"),
-      loadImage("pepper", "assets/pepper.png"),
-      loadImage("dh", "assets/dh.png"),
-      loadImage("text", "assets/text.png"),
-    ]).then((results) => {
-      results.forEach(({ key, img, ok, src }) => {
-        if (!ok) {
-          console.warn(`[assets] failed to load: ${key} (${src})`);
-          this.assets[key] = null;
-          return;
-        }
-        this.assets[key] = img;
-      });
-  
-      this.assetsLoaded = true;
-      this.renderArt(); // 에셋 로드 완료 후 재렌더
-    });
+
+    Promise.all(this.keepsakeLayers.map(({ key, src }) => loadImage(key, src))).then(
+      (results) => {
+        results.forEach(({ key, img, ok, src }) => {
+          if (!ok) {
+            console.warn(`[assets] failed to load: ${key} (${src})`);
+            this.assets[key] = null;
+            return;
+          }
+          this.assets[key] = img;
+        });
+
+        this.assetsLoaded = true;
+        this.renderArt(); // 에셋 로드 완료 후 재렌더
+      }
+    );
   }
   
   
@@ -679,13 +706,11 @@ class Game {
     if (!this.assetsLoaded) return;
   
     // 여기서 절대 maxClearedLevel을 증가시키지 마세요 (버그)
-    const stage = Math.min(5, this.maxClearedLevel);
-  
-    if (stage >= 5) this.drawText(ctx, w, h);
-    if (stage >= 4) this.drawDh(ctx, w, h);
-    if (stage >= 3) this.drawPepper(ctx, w, h);
-    if (stage >= 2) this.drawSimAndChe(ctx, w, h);
-    if (stage >= 1) this.drawUj(ctx, w, h);
+    const stage = Math.min(this.keepsakeLayers.length, this.maxClearedLevel);
+
+    this.keepsakeLayers.slice(0, stage).forEach((layer) => {
+      layer.draw(ctx, w, h);
+    });
   }
   
 
@@ -702,50 +727,6 @@ class Game {
     ctx.closePath();
     ctx.fill();
     ctx.restore();
-  }
-
-  drawUj(ctx, w, h) {
-    this.drawCharacterImage(
-      ctx,
-      this.assets.uj,
-      w * 0.76,
-      h * 0.60,
-      0.6
-    );
-  }
-  
-  drawSimAndChe(ctx, w, h) {
-    this.drawCharacterImage(
-      ctx,
-      this.assets.simandche,
-      w * 0.46,
-      h * 0.66,
-      0.62
-    );
-  }
-
-  drawPepper(ctx, w, h) {
-    this.drawCharacterImage(
-      ctx,
-      this.assets.pepper,
-      w * 0.52,
-      h * 0.76,
-      0.55
-    );
-  }
-
-  drawDh(ctx, w, h) {
-    this.drawCharacterImage(
-      ctx,
-      this.assets.dh,
-      w * 0.64,
-      h * 0.74,
-      0.6
-    );
-  }
-
-  drawText(ctx, w, h) {
-    this.drawCharacterImage(ctx, this.assets.text, w * 0.50, h * 0.34, 0.72);
   }
 
   handleSwap(a, b) {

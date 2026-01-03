@@ -728,9 +728,9 @@ class Game {
     this.drawCharacterImage(
       ctx,
       this.assets.pepper,
-      w * 0.38,
+      w * 0.36,
       h * 0.83,
-      1.1
+      0.73
     );
   }
 

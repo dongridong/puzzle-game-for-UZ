@@ -681,10 +681,10 @@ class Game {
     // 여기서 절대 maxClearedLevel을 증가시키지 마세요 (버그)
     const stage = Math.min(5, this.maxClearedLevel);
 
+    if (stage >= 4) this.drawDh(ctx, w, h);
     if (stage >= 1) this.drawUj(ctx, w, h);
     if (stage >= 2) this.drawSimandche(ctx, w, h);
     if (stage >= 3) this.drawPepper(ctx, w, h);
-    if (stage >= 4) this.drawDh(ctx, w, h);
     if (stage >= 5) this.drawText(ctx, w, h);
   }
   
@@ -708,18 +708,18 @@ class Game {
     this.drawCharacterImage(
       ctx,
       this.assets.uj,
-      w * 0.76,
-      h * 0.60,
-      0.6
+      w * 0.64,
+      h * 0.58,
+      1.0125
     );
   }
-  
+
   drawSimandche(ctx, w, h) {
     this.drawCharacterImage(
       ctx,
       this.assets.simandche,
-      w * 0.50,
-      h * 0.62,
+      w * 0.68,
+      h * 0.80,
       0.65
     );
   }
@@ -728,8 +728,8 @@ class Game {
     this.drawCharacterImage(
       ctx,
       this.assets.pepper,
-      w * 0.52,
-      h * 0.76,
+      w * 0.32,
+      h * 0.80,
       0.55
     );
   }
@@ -738,9 +738,9 @@ class Game {
     this.drawCharacterImage(
       ctx,
       this.assets.dh,
-      w * 0.64,
-      h * 0.74,
-      0.6
+      w * 0.33,
+      h * 0.58,
+      1.0125
     );
   }
 
@@ -749,7 +749,7 @@ class Game {
       ctx,
       this.assets.text,
       w * 0.50,
-      h * 0.60,
+      h * 0.16,
       0.6
     );
   }

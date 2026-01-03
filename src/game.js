@@ -2,13 +2,13 @@
 // The code separates board logic from rendering, keeps a clear state machine,
 // and includes booster generation/combination behaviour.
 
-// Bold primary palette (red, orange, yellow, green, blue) for maximum clarity.
+// Pastel palette for softer block colors while keeping the classic hue order.
 const COLORS = [
-  "#FFB3A7", // red
-  "#FFD6A5", // orange
-  "#CDB4DB", // yellow
-  "#BDE0FE", // green
-  "#B8E0D2", // blue
+  "#FFB3A7", // pastel coral (red)
+  "#FFD6A5", // pastel yellow (amber)
+  "#CDB4DB", // lavender (purple)
+  "#BDE0FE", // powder blue
+  "#B8E0D2", // sage green
 ];
 
 const TILE_SIZE = 60;
@@ -511,11 +511,11 @@ class Game {
       });
   
     Promise.all([
-      loadImage("dh", "assets/dh.png"),
       loadImage("uj", "assets/uj.png"),
-      loadImage("chedda", "assets/chedda.png"),
+      loadImage("simandche", "assets/simandche.png"),
       loadImage("pepper", "assets/pepper.png"),
-      loadImage("simba", "assets/simba.png"),
+      loadImage("dh", "assets/dh.png"),
+      loadImage("text", "assets/text.png"),
     ]).then((results) => {
       results.forEach(({ key, img, ok, src }) => {
         if (!ok) {
@@ -680,12 +680,12 @@ class Game {
   
     // 여기서 절대 maxClearedLevel을 증가시키지 마세요 (버그)
     const stage = Math.min(5, this.maxClearedLevel);
-  
-    if (stage >= 2) this.drawChedda(ctx, w, h);
-    if (stage >= 3) this.drawSimba(ctx, w, h);
-    if (stage >= 4) this.drawPepper(ctx, w, h);
-    if (stage >= 5) this.drawDh(ctx, w, h);
+
     if (stage >= 1) this.drawUj(ctx, w, h);
+    if (stage >= 2) this.drawSimandche(ctx, w, h);
+    if (stage >= 3) this.drawPepper(ctx, w, h);
+    if (stage >= 4) this.drawDh(ctx, w, h);
+    if (stage >= 5) this.drawText(ctx, w, h);
   }
   
 
@@ -714,23 +714,13 @@ class Game {
     );
   }
   
-  drawChedda(ctx, w, h) {
+  drawSimandche(ctx, w, h) {
     this.drawCharacterImage(
       ctx,
-      this.assets.chedda,
+      this.assets.simandche,
       w * 0.50,
       h * 0.62,
       0.65
-    );
-  }
-
-  drawSimba(ctx, w, h) {
-    this.drawCharacterImage(
-      ctx,
-      this.assets.simba,
-      w * 0.34,
-      h * 0.70,
-      0.55
     );
   }
 
@@ -750,6 +740,16 @@ class Game {
       this.assets.dh,
       w * 0.64,
       h * 0.74,
+      0.6
+    );
+  }
+
+  drawText(ctx, w, h) {
+    this.drawCharacterImage(
+      ctx,
+      this.assets.text,
+      w * 0.50,
+      h * 0.60,
       0.6
     );
   }

@@ -719,8 +719,8 @@ class Game {
       ctx,
       this.assets.simandche,
       w * 0.68,
-      h * 0.83,
-      1.095
+      h * 0.80,
+      0.65
     );
   }
 
@@ -729,8 +729,8 @@ class Game {
       ctx,
       this.assets.pepper,
       w * 0.32,
-      h * 0.83,
-      1.095
+      h * 0.80,
+      0.55
     );
   }
 

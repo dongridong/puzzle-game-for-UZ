@@ -511,11 +511,11 @@ class Game {
       });
   
     Promise.all([
-      loadImage("dh", "assets/dh.png"),
       loadImage("uj", "assets/uj.png"),
-      loadImage("chedda", "assets/chedda.png"),
+      loadImage("simandche", "assets/simandche.png"),
       loadImage("pepper", "assets/pepper.png"),
-      loadImage("simba", "assets/simba.png"),
+      loadImage("dh", "assets/dh.png"),
+      loadImage("text", "assets/text.png"),
     ]).then((results) => {
       results.forEach(({ key, img, ok, src }) => {
         if (!ok) {
@@ -681,10 +681,10 @@ class Game {
     // 여기서 절대 maxClearedLevel을 증가시키지 마세요 (버그)
     const stage = Math.min(5, this.maxClearedLevel);
   
-    if (stage >= 2) this.drawChedda(ctx, w, h);
-    if (stage >= 3) this.drawSimba(ctx, w, h);
-    if (stage >= 4) this.drawPepper(ctx, w, h);
-    if (stage >= 5) this.drawDh(ctx, w, h);
+    if (stage >= 5) this.drawText(ctx, w, h);
+    if (stage >= 4) this.drawDh(ctx, w, h);
+    if (stage >= 3) this.drawPepper(ctx, w, h);
+    if (stage >= 2) this.drawSimAndChe(ctx, w, h);
     if (stage >= 1) this.drawUj(ctx, w, h);
   }
   
@@ -714,23 +714,13 @@ class Game {
     );
   }
   
-  drawChedda(ctx, w, h) {
+  drawSimAndChe(ctx, w, h) {
     this.drawCharacterImage(
       ctx,
-      this.assets.chedda,
-      w * 0.50,
-      h * 0.62,
-      0.65
-    );
-  }
-
-  drawSimba(ctx, w, h) {
-    this.drawCharacterImage(
-      ctx,
-      this.assets.simba,
-      w * 0.34,
-      h * 0.70,
-      0.55
+      this.assets.simandche,
+      w * 0.46,
+      h * 0.66,
+      0.62
     );
   }
 
@@ -752,6 +742,10 @@ class Game {
       h * 0.74,
       0.6
     );
+  }
+
+  drawText(ctx, w, h) {
+    this.drawCharacterImage(ctx, this.assets.text, w * 0.50, h * 0.34, 0.72);
   }
 
   handleSwap(a, b) {

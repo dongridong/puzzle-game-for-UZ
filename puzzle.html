@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>우리의 추억 퍼즐 여정</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="puzzle-page">
+  <div class="app">
+    <main class="container">
+      <section class="puzzle-intro" aria-label="게임 소개">
+        <p class="puzzle-intro__tag">Chapter 1-5</p>
+        <h1><br />과연 정유진은 상자를 열 수 있을까요?</h1>
+        <p>모든 레벨을 클리어하면, 노동현의 속마음을 알 수 있을지도?</p>
+      </section>
+      <header class="hud">
+        <div class="hud__item hud__item--moves">
+          <strong>이동 수</strong>
+          <span id="moves" class="hud__value">0</span>
+        </div>
+        <div class="hud__item hud__progress hud__item--progress">
+          <div class="hud__progress-label"><strong>진행도</strong></div>
+          <div class="gauge" aria-label="진행도 게이지">
+            <span class="gauge__cell"></span>
+            <span class="gauge__cell"></span>
+            <span class="gauge__cell"></span>
+            <span class="gauge__cell"></span>
+            <span class="gauge__cell"></span>
+            <span class="gauge__cell"></span>
+            <span class="gauge__cell"></span>
+            <span class="gauge__cell"></span>
+            <span class="gauge__cell"></span>
+            <span class="gauge__cell"></span>
+          </div>
+          <div class="gauge__text"><span id="cleared">0</span>/<span id="target">0</span></div>
+        </div>
+        <div class="hud__item hud__item--objective">
+          <strong>목표</strong>
+          <span id="objective" class="hud__value hud__value--long"></span>
+        </div>
+        <button id="restartBtn" class="icon-button hud__restart" aria-label="현재 단계 다시하기" title="다시하기">
+          <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+            <path d="M12 5V1L6 7l6 6V9c2.76 0 5 2.24 5 5a5 5 0 0 1-5 5 5 5 0 0 1-4.58-3H6.1A7 7 0 0 0 19 14c0-3.87-3.13-7-7-7Z" />
+          </svg>
+        </button>
+      </header>
+      <div id="celebration" class="celebration" role="status" aria-live="polite"></div>
+      <canvas id="gameCanvas" width="540" height="540" aria-label="매치-3 보드" role="img"></canvas>
+      <section class="instructions">
+        <h2>플레이 방법</h2>
+        <ul>
+        <li>인접한 타일을 바꿔 3개 이상 같은 타일을 맞추세요.</li>
+        <li>
+          4개를 맞추면 방향 로켓(화살표 아이콘)이 생성됩니다. 일렬 5개는 보석, T/L 모양 매치는 폭탄을 만듭니다.
+        </li>
+        <li>부스터를 조합하면 더 강력한 효과가 발동됩니다.</li>
+        <li>이동 횟수를 모두 쓰기 전에 목표를 달성하세요.</li>
+        </ul>
+      </section>
+    </main>
+    <aside class="side-panel">
+      <div class="side-panel__header">
+        <h2>웨딩 사진을 채우라 그러더라고~</h2>
+        <p>클리어할 때마다 채워진다 그러더라고~</p>
+      </div>
+      <canvas id="artCanvas" width="240" height="360" aria-label="레벨 기념 이미지"></canvas>
+    </aside>
+  </div>
+  <script type="module" src="src/game.js"></script>
+</body>
+</html>

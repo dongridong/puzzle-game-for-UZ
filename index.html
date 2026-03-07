@@ -1,62 +1,263 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Canvas Match-3 Puzzle</title>
+  <title>우당탕탕 프로포즈 대작전</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .proposal-landing {
+      position: relative;
+      align-items: center;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 12% 16%, rgba(255, 194, 214, 0.25), transparent 36%),
+        radial-gradient(circle at 85% 12%, rgba(255, 235, 194, 0.26), transparent 38%),
+        linear-gradient(135deg, #3b1533 0%, #1b173b 52%, #0f1c35 100%);
+      padding: clamp(16px, 5vw, 40px);
+    }
+
+    .proposal-landing::before,
+    .proposal-landing::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      opacity: 0.45;
+      filter: blur(6px);
+      pointer-events: none;
+      animation: floatGlow 6s ease-in-out infinite;
+    }
+
+    .proposal-landing::before {
+      width: 230px;
+      height: 230px;
+      background: radial-gradient(circle, rgba(255, 146, 190, 0.35), rgba(255, 146, 190, 0));
+      top: -80px;
+      left: -50px;
+    }
+
+    .proposal-landing::after {
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(255, 218, 152, 0.35), rgba(255, 218, 152, 0));
+      right: -70px;
+      bottom: -90px;
+      animation-delay: -3s;
+    }
+
+    .proposal-card {
+      width: min(700px, 100%);
+      padding: clamp(26px, 5vw, 46px);
+      text-align: left;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: linear-gradient(165deg, rgba(47, 26, 54, 0.9), rgba(16, 24, 44, 0.9));
+      box-shadow:
+        0 26px 60px rgba(0, 0, 0, 0.45),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(8px);
+      position: relative;
+      overflow: hidden;
+      animation: cardRise 0.7s ease-out both;
+    }
+
+    .proposal-card::after {
+      content: "";
+      position: absolute;
+      inset: -40% auto auto -12%;
+      width: 140%;
+      height: 42%;
+      background: linear-gradient(
+        120deg,
+        rgba(255, 185, 207, 0.18) 0%,
+        rgba(255, 218, 152, 0.18) 35%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      transform: rotate(7deg);
+      pointer-events: none;
+    }
+
+    .proposal-card > * {
+      position: relative;
+      z-index: 1;
+      opacity: 0;
+      transform: translateY(14px);
+      animation: contentRise 0.55s ease forwards;
+    }
+
+    .proposal-card > *:nth-child(1) {
+      animation-delay: 0.08s;
+    }
+
+    .proposal-card > *:nth-child(2) {
+      animation-delay: 0.16s;
+    }
+
+    .proposal-card > *:nth-child(3) {
+      animation-delay: 0.24s;
+    }
+
+    .proposal-card > *:nth-child(4) {
+      animation-delay: 0.32s;
+    }
+
+    .proposal-card > *:nth-child(5) {
+      animation-delay: 0.4s;
+    }
+
+    .proposal-card > *:nth-child(6) {
+      animation-delay: 0.48s;
+    }
+
+    .proposal-tag {
+      display: inline-block;
+      padding: 6px 12px;
+      margin: 0 0 14px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #fffaf0;
+      background: rgba(255, 255, 255, 0.14);
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+
+    .proposal-card h1 {
+      margin: 0 0 14px;
+      line-height: 1.3;
+      font-size: clamp(1.7rem, 4vw, 2.25rem);
+      color: #fff7f2;
+      font-family: "Nanum Myeongjo", "Noto Serif KR", "Times New Roman", serif;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .proposal-lead {
+      margin: 0 0 18px;
+      line-height: 1.7;
+      font-size: 1.02rem;
+      color: rgba(255, 247, 242, 0.9);
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+
+    .proposal-points {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px;
+      display: grid;
+      gap: 10px;
+      color: rgba(243, 244, 246, 0.95);
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+
+    .proposal-points li {
+      position: relative;
+      padding-left: 26px;
+      line-height: 1.55;
+    }
+
+    .proposal-points li::before {
+      content: "♥";
+      position: absolute;
+      left: 0;
+      top: 1px;
+      font-size: 0.95rem;
+      color: #ffafc4;
+    }
+
+    .proposal-note {
+      margin: 0 0 24px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.09);
+      color: rgba(255, 248, 240, 0.9);
+      font-size: 0.94rem;
+      line-height: 1.55;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+
+    .proposal-start {
+      width: min(280px, 100%);
+      height: 54px;
+      margin: 0;
+      font-size: 1rem;
+      border-radius: 14px;
+      color: #2b1528;
+      background: linear-gradient(120deg, #ffd2de 0%, #ffe7be 100%);
+      box-shadow:
+        0 12px 26px rgba(255, 188, 154, 0.33),
+        0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+
+    .proposal-start:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 16px 30px rgba(255, 188, 154, 0.45),
+        0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+    }
+
+    .proposal-start:active {
+      transform: translateY(0);
+    }
+
+    @keyframes cardRise {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes contentRise {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes floatGlow {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(16px);
+      }
+    }
+
+    @media (max-width: 620px) {
+      .proposal-card {
+        border-radius: 16px;
+      }
+
+      .proposal-start {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
-<body>
-  <div class="app">
-    <main class="container">
-      <header class="hud">
-        <div class="hud__item"><strong>Moves:</strong> <span id="moves">0</span></div>
-      <div class="hud__item hud__progress">
-        <div class="hud__progress-label"><strong>Progress</strong></div>
-        <div class="gauge" aria-label="progress gauge">
-          <span class="gauge__cell"></span>
-          <span class="gauge__cell"></span>
-          <span class="gauge__cell"></span>
-          <span class="gauge__cell"></span>
-          <span class="gauge__cell"></span>
-          <span class="gauge__cell"></span>
-          <span class="gauge__cell"></span>
-          <span class="gauge__cell"></span>
-          <span class="gauge__cell"></span>
-          <span class="gauge__cell"></span>
-        </div>
-        <div class="gauge__text"><span id="cleared">0</span>/<span id="target">0</span></div>
-      </div>
-      <div class="hud__item"><strong>Objective:</strong> <span id="objective"></span></div>
-      <div class="hud__item"><strong>Status:</strong> <span id="status">Idle</span></div>
-      <button id="restartBtn" class="icon-button" aria-label="현재 단계 다시하기" title="다시하기">
-        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-          <path d="M12 5V1L6 7l6 6V9c2.76 0 5 2.24 5 5a5 5 0 0 1-5 5 5 5 0 0 1-4.58-3H6.1A7 7 0 0 0 19 14c0-3.87-3.13-7-7-7Z" />
-        </svg>
-      </button>
-    </header>
-      <div id="celebration" class="celebration" role="status" aria-live="polite"></div>
-      <canvas id="gameCanvas" width="540" height="540" aria-label="Match-3 board" role="img"></canvas>
-      <section class="instructions">
-        <h2>How to play</h2>
-        <ul>
-        <li>Swap adjacent tiles to create matches of three or more.</li>
-        <li>
-          Match four to spawn a directional rocket (arrow icon). Match five in a line creates a gem, while T/L matches spawn a bomb.
-        </li>
-        <li>Combining boosters triggers stronger effects.</li>
-        <li>Clear objectives before running out of moves.</li>
-        </ul>
-      </section>
-    </main>
-    <aside class="side-panel">
-      <div class="side-panel__header">
-        <h2>Level Keepsakes</h2>
-        <p>클리어할 때마다 오른쪽 그림이 채워집니다.</p>
-      </div>
-      <canvas id="artCanvas" width="240" height="360" aria-label="Level keepsake art"></canvas>
-    </aside>
-  </div>
-  <script type="module" src="src/game.js"></script>
+<body class="landing-page proposal-landing">
+  <main class="landing-card proposal-card">
+    <p class="proposal-tag">For Our Story</p>
+    <h1>안녕 유진아 :)<br />난 이 프로젝트를 기획한 คʕ•ﻌ•ʔค 이야!</h1>
+    <p class="proposal-lead">
+      처음 만난 순간부터 지금까지 나랑 재밌게 잘 놀아줘서 고마워,
+      앞으로 남은 내 인생의 모든 순간도 너랑 같이 재밌게 놀고싶어!
+    </p>
+    <ul class="proposal-points">
+      <li>총 5단계를 클리어하면 비밀번호가 나와.</li>
+      <li>오른쪽 기념 이미지는 스테이지를 넘길수록 완성돼.</li>
+      <li>하다가 정 못할거 같으면 알려줘~ 힌트 줄게.</li>
+    </ul>
+    <p class="proposal-note">준비되면 시작 버튼을 눌러줘. 마지막에 꼭 전하고 싶은 말이 있어.</p>
+    <a class="landing-start proposal-start" href="puzzle.html">우당탕탕 프로포즈 대작전 시작하기</a>
+  </main>
 </body>
 </html>

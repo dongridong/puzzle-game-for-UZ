@@ -4,12 +4,18 @@
 
 // Pastel palette for softer block colors while keeping the classic hue order.
 const COLORS = [
-  "#FFB3A7", // pastel coral (red)
-  "#FFD6A5", // pastel yellow (amber)
-  "#CDB4DB", // lavender (purple)
-  "#BDE0FE", // powder blue
-  "#B8E0D2", // sage green
+  "#F7A9B9", // rose pink
+  "#FFD9AA", // warm apricot
+  "#D8BFEF", // soft lavender
+  "#C7D8FF", // misty periwinkle
+  "#BFE4D4", // mint sage
 ];
+
+const BOARD_BACKGROUND = "#271c37";
+const ART_SKY_TOP = "#432640";
+const ART_SKY_BOTTOM = "#1a2140";
+const ART_FLOOR = "#291f34";
+const BOMB_CORE_COLOR = "rgba(55,30,59,0.95)";
 
 const TILE_SIZE = 60;
 const BOARD_SIZE = 9;
@@ -29,12 +35,41 @@ const GameState = Object.freeze({
   ANIMATING: "Animating",
 });
 
+const STATE_LABELS = Object.freeze({
+  [GameState.IDLE]: "대기 중",
+  [GameState.SWAPPING]: "교환 중",
+  [GameState.RESOLVING]: "매치 처리 중",
+  [GameState.FALLING]: "낙하 중",
+  [GameState.ANIMATING]: "애니메이션 중",
+});
+
+let tileIdCounter = 0;
+
+function createTileId() {
+  const cryptoObj = globalThis.crypto;
+
+  if (cryptoObj && typeof cryptoObj.randomUUID === "function") {
+    return cryptoObj.randomUUID();
+  }
+
+  if (cryptoObj && typeof cryptoObj.getRandomValues === "function") {
+    const bytes = new Uint8Array(16);
+    cryptoObj.getRandomValues(bytes);
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  }
+
+  tileIdCounter += 1;
+  return `tile-${Date.now().toString(36)}-${tileIdCounter.toString(36)}-${Math.random()
+    .toString(36)
+    .slice(2, 10)}`;
+}
+
 class Tile {
   constructor(color, booster = BoosterType.NONE, variant = null) {
     this.color = color;
     this.booster = booster;
     this.variant = variant; // visual variant for booster icons (e.g., arrow orientation, gem)
-    this.id = crypto.randomUUID();
+    this.id = createTileId();
   }
 
   isBooster() {
@@ -304,7 +339,7 @@ class Renderer {
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     // Draw background grid.
-    ctx.fillStyle = "#0b1325";
+    ctx.fillStyle = BOARD_BACKGROUND;
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     // Draw tiles.
@@ -406,7 +441,7 @@ class Renderer {
 
   drawBomb(cx, cy, radius) {
     const ctx = this.ctx;
-    ctx.fillStyle = "rgba(30,41,59,0.95)";
+    ctx.fillStyle = BOMB_CORE_COLOR;
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.fill();
@@ -549,25 +584,45 @@ class Game {
   }
 
   bindInput(canvas) {
+    const pointerFromEvent = (e) => {
+      const touch = e.touches?.[0] || e.changedTouches?.[0];
+      if (touch) {
+        return { clientX: touch.clientX, clientY: touch.clientY };
+      }
+
+      if (typeof e.clientX === "number" && typeof e.clientY === "number") {
+        return { clientX: e.clientX, clientY: e.clientY };
+      }
+
+      return null;
+    };
+
     const posFromEvent = (e) => {
+      const pointer = pointerFromEvent(e);
+      if (!pointer) return null;
+
       const rect = canvas.getBoundingClientRect();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      const x = Math.floor(((clientX - rect.left) / rect.width) * this.board.size);
-      const y = Math.floor(((clientY - rect.top) / rect.height) * this.board.size);
+      const x = Math.floor(((pointer.clientX - rect.left) / rect.width) * this.board.size);
+      const y = Math.floor(((pointer.clientY - rect.top) / rect.height) * this.board.size);
       return { x, y };
     };
 
     const onDown = (e) => {
       e.preventDefault();
       if (this.state !== GameState.IDLE) return;
-      this.selected = posFromEvent(e);
+      const selected = posFromEvent(e);
+      if (!selected) return;
+      this.selected = selected;
     };
 
     const onUp = (e) => {
       e.preventDefault();
       if (!this.selected || this.state !== GameState.IDLE) return;
       const release = posFromEvent(e);
+      if (!release) {
+        this.selected = null;
+        return;
+      }
       const dx = release.x - this.selected.x;
       const dy = release.y - this.selected.y;
       const adjacent = Math.abs(dx) + Math.abs(dy) === 1;
@@ -577,10 +632,22 @@ class Game {
       this.selected = null;
     };
 
+    const onTouchMove = (e) => {
+      if (this.selected) {
+        e.preventDefault();
+      }
+    };
+
+    const onTouchCancel = () => {
+      this.selected = null;
+    };
+
     canvas.addEventListener("mousedown", onDown);
     canvas.addEventListener("mouseup", onUp);
     canvas.addEventListener("touchstart", onDown, { passive: false });
+    canvas.addEventListener("touchmove", onTouchMove, { passive: false });
     canvas.addEventListener("touchend", onUp, { passive: false });
+    canvas.addEventListener("touchcancel", onTouchCancel);
   }
 
   loop() {
@@ -590,7 +657,9 @@ class Game {
 
   setState(newState) {
     this.state = newState;
-    this.statusEl.textContent = newState;
+    if (this.statusEl) {
+      this.statusEl.textContent = STATE_LABELS[newState] ?? "상태 알 수 없음";
+    }
   }
 
   loadLevel(index) {
@@ -617,7 +686,7 @@ class Game {
       this.devRestartCount = 0;
       this.clearedTiles = this.targetTiles;
       this.updateHud();
-      this.triggerLevelComplete("Developer clear!");
+      this.triggerLevelComplete("개발자 즉시 클리어!");
       return;
     }
     this.restartLevel(false);
@@ -629,6 +698,11 @@ class Game {
   }
 
   advanceLevel() {
+    const isFinalLevel = this.levelIndex >= this.levels.length - 1;
+    if (isFinalLevel) {
+      window.location.replace("ending.html");
+      return;
+    }
     const nextIndex = Math.min(this.levelIndex + 1, this.levels.length - 1);
     this.devRestartCount = 0;
     this.loadLevel(nextIndex);
@@ -639,7 +713,7 @@ class Game {
     this.targetEl.textContent = this.targetTiles;
     this.clearedEl.textContent = Math.min(this.clearedTiles, this.targetTiles);
     this.updateGauge();
-    const objectives = `Level ${this.levelIndex + 1}: clear ${this.targetTiles} tiles`;
+    const objectives = `${this.levelIndex + 1}레벨: 타일 ${this.targetTiles}개 제거`;
     this.objectiveEl.textContent = objectives;
   }
 
@@ -660,13 +734,13 @@ class Game {
   
     // Base backdrop (항상 그리기)
     const sky = ctx.createLinearGradient(0, 0, 0, h);
-    sky.addColorStop(0, "#1d2a46");
-    sky.addColorStop(1, "#0f172a");
+    sky.addColorStop(0, ART_SKY_TOP);
+    sky.addColorStop(1, ART_SKY_BOTTOM);
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, w, h);
   
     // Soft floor
-    ctx.fillStyle = "#101827";
+    ctx.fillStyle = ART_FLOOR;
     ctx.beginPath();
     ctx.moveTo(0, h * 0.78);
     ctx.quadraticCurveTo(w * 0.5, h * 0.72, w, h * 0.8);
@@ -824,21 +898,25 @@ class Game {
   checkEndConditions() {
     const completed = this.clearedTiles >= this.targetTiles;
     if (completed) {
-      this.triggerLevelComplete("Level Complete!");
+      this.triggerLevelComplete("레벨 클리어!");
     } else if (this.movesLeft <= 0) {
-      this.statusEl.textContent = "Out of moves";
+      if (this.statusEl) {
+        this.statusEl.textContent = "이동 횟수 소진";
+      }
       this.setState(GameState.IDLE);
       setTimeout(() => this.restartLevel(), 300);
     }
   }
 
   triggerLevelComplete(message) {
-    this.statusEl.textContent = message;
+    if (this.statusEl) {
+      this.statusEl.textContent = message;
+    }
     this.maxClearedLevel = Math.max(this.maxClearedLevel, this.levelIndex + 1);
     this.renderArt();
     this.showCelebration();
     this.setState(GameState.IDLE);
-    setTimeout(() => this.advanceLevel(), 600);
+    setTimeout(() => this.advanceLevel(), 900);
   }
 
   showCelebration() {
@@ -846,7 +924,7 @@ class Game {
     if (this.celebrationTimeout) {
       clearTimeout(this.celebrationTimeout);
     }
-    this.celebrationEl.textContent = `축하합니다! Level ${this.levelIndex + 1} 클리어!`;
+    this.celebrationEl.textContent = `축하합니다! ${this.levelIndex + 1}레벨 클리어!`;
     this.celebrationEl.classList.add("is-visible");
     this.celebrationTimeout = setTimeout(() => this.hideCelebration(), 1400);
   }
@@ -985,10 +1063,15 @@ function easeOutBounce(t) {
 
 // Bootstrap
 window.addEventListener("DOMContentLoaded", () => {
-  const canvas = document.getElementById("gameCanvas");
-  canvas.width = BOARD_SIZE * (TILE_SIZE + 4) + 24;
-  canvas.height = BOARD_SIZE * (TILE_SIZE + 4) + 24;
-  new Game(canvas);
+  try {
+    const canvas = document.getElementById("gameCanvas");
+    if (!canvas) return;
+    canvas.width = BOARD_SIZE * (TILE_SIZE + 4) + 24;
+    canvas.height = BOARD_SIZE * (TILE_SIZE + 4) + 24;
+    new Game(canvas);
+  } catch (error) {
+    console.error("[bootstrap] Failed to initialize game", error);
+  }
 });
 
 // How to extend levels:

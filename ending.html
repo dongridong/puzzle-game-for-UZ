@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>우리 이야기의 마지막 장면</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .proposal-ending {
+      position: relative;
+      align-items: center;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 10% 18%, rgba(255, 191, 210, 0.25), transparent 36%),
+        radial-gradient(circle at 86% 12%, rgba(255, 228, 170, 0.24), transparent 38%),
+        linear-gradient(140deg, #3a2233 0%, #1a1d3d 50%, #12243b 100%);
+      padding: clamp(18px, 5vw, 42px);
+    }
+
+    .proposal-ending::before,
+    .proposal-ending::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      opacity: 0.5;
+      filter: blur(6px);
+      pointer-events: none;
+      animation: endingFloat 7s ease-in-out infinite;
+    }
+
+    .proposal-ending::before {
+      width: 240px;
+      height: 240px;
+      top: -90px;
+      left: -56px;
+      background: radial-gradient(circle, rgba(255, 164, 198, 0.35), rgba(255, 164, 198, 0));
+    }
+
+    .proposal-ending::after {
+      width: 280px;
+      height: 280px;
+      right: -84px;
+      bottom: -108px;
+      background: radial-gradient(circle, rgba(255, 218, 149, 0.34), rgba(255, 218, 149, 0));
+      animation-delay: -3.2s;
+    }
+
+    .ending-proposal-card {
+      width: min(720px, 100%);
+      padding: clamp(28px, 5vw, 48px);
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: linear-gradient(165deg, rgba(48, 28, 57, 0.9), rgba(17, 27, 47, 0.9));
+      box-shadow:
+        0 26px 64px rgba(0, 0, 0, 0.45),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(8px);
+      position: relative;
+      overflow: hidden;
+      animation: endingCardRise 0.75s ease-out both;
+    }
+
+    .ending-proposal-card::before {
+      content: "";
+      position: absolute;
+      inset: -30% auto auto -10%;
+      width: 128%;
+      height: 40%;
+      background: linear-gradient(
+        120deg,
+        rgba(255, 191, 210, 0.19) 0%,
+        rgba(255, 228, 170, 0.18) 38%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      transform: rotate(7deg);
+      pointer-events: none;
+    }
+
+    .ending-proposal-card > * {
+      position: relative;
+      z-index: 1;
+      opacity: 0;
+      transform: translateY(14px);
+      animation: endingContentRise 0.6s ease forwards;
+    }
+
+    .ending-proposal-card > *:nth-child(1) {
+      animation-delay: 0.08s;
+    }
+
+    .ending-proposal-card > *:nth-child(2) {
+      animation-delay: 0.16s;
+    }
+
+    .ending-proposal-card > *:nth-child(3) {
+      animation-delay: 0.24s;
+    }
+
+    .ending-proposal-card > *:nth-child(4) {
+      animation-delay: 0.32s;
+    }
+
+    .ending-proposal-card > *:nth-child(5) {
+      animation-delay: 0.4s;
+    }
+
+    .ending-proposal-card > *:nth-child(6) {
+      animation-delay: 0.48s;
+    }
+
+    .ending-tag {
+      display: inline-block;
+      margin: 0 0 14px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #fffaf0;
+      background: rgba(255, 255, 255, 0.14);
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+
+    .ending-proposal-card h1 {
+      margin: 0 0 14px;
+      font-size: clamp(1.85rem, 4.6vw, 2.55rem);
+      line-height: 1.25;
+      color: #fff7f3;
+      font-family: "Nanum Myeongjo", "Noto Serif KR", "Times New Roman", serif;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .ending-lead {
+      margin: 0 auto 14px;
+      max-width: 580px;
+      font-size: 1.02rem;
+      line-height: 1.7;
+      color: rgba(255, 247, 243, 0.9);
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+
+    .ending-proposal-line {
+      margin: 0 auto 18px;
+      max-width: 600px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.09);
+      color: #fff5ea;
+      line-height: 1.6;
+      font-size: 1.03rem;
+      font-family: "Nanum Myeongjo", "Noto Serif KR", "Times New Roman", serif;
+      font-weight: 600;
+    }
+
+    .ending-password {
+      margin: 0 auto 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      color: rgba(255, 247, 243, 0.95);
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      font-size: 0.93rem;
+    }
+
+    .ending-password strong {
+      color: #ffe4ba;
+      letter-spacing: 0.06em;
+    }
+
+    .ending-actions {
+      gap: 12px;
+    }
+
+    .ending-primary {
+      width: 210px;
+      height: 50px;
+      color: #2b1528;
+      background: linear-gradient(120deg, #ffd2de 0%, #ffe7be 100%);
+      box-shadow:
+        0 12px 26px rgba(255, 188, 154, 0.33),
+        0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      margin: 0;
+    }
+
+    .ending-primary:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 16px 30px rgba(255, 188, 154, 0.45),
+        0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+    }
+
+    .ending-secondary {
+      width: 210px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.14);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+      color: #fff4ee;
+      transition: transform 0.18s ease, background 0.18s ease;
+    }
+
+    .ending-secondary:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes endingCardRise {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes endingContentRise {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes endingFloat {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(16px);
+      }
+    }
+
+    @media (max-width: 620px) {
+      .ending-primary,
+      .ending-secondary {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body class="ending-page proposal-ending">
+  <main class="ending-card ending-proposal-card">
+    <p class="ending-tag">Final Scene</p>
+    <h1>Will You Marry คʕ•ﻌ•ʔค ?</h1>
+    <p class="ending-lead">
+      너를 만나고 나서, 삼겹살 먹고 볶아먹는 밥이 얼마나 맛있는지 알게 됐어.<br />
+      너를 만나고 나서, 조수석에서 졸아도 그저 귀여울 수 있다는 걸 알게 됐어.<br />
+      너를 만나고 나서, 짧고 굵게 살고싶던 내가 오래오래 살고싶다는 생각을 하게 됐어.<br />
+      뭘 해도 응원해주는 네가 있어서, 무엇이든 할 수 있겠다는 용기가 생겼어.<br />
+    </p>
+    <p class="ending-proposal-line">
+      그래서 말인데, 이제 연애 그만하구 나랑 결혼해주라 คʕ•ﻌ•ʔค <br />
+      (거절은 거절한다~)
+    </p>
+    <p class="ending-password"><strong>PW: 사귄날 (211120)</strong> </p>
+    <div class="ending-actions">
+      <a class="landing-start ending-primary" href="puzzle.html">다시 플레이</a>
+      <a class="ending-link ending-secondary" href="index.html">첫 장면으로</a>
+    </div>
+  </main>
+</body>
+</html>

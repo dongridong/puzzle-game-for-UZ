@@ -16,6 +16,7 @@ const ART_SKY_TOP = "#432640";
 const ART_SKY_BOTTOM = "#1a2140";
 const ART_FLOOR = "#291f34";
 const BOMB_CORE_COLOR = "rgba(55,30,59,0.95)";
+const LIGHTBALL_TILE_COLOR = "#2d2a3b";
 
 const TILE_SIZE = 60;
 const BOARD_SIZE = 9;
@@ -25,6 +26,7 @@ const BoosterType = Object.freeze({
   H_ROCKET: "h_rocket",
   V_ROCKET: "v_rocket",
   BOMB: "bomb",
+  LIGHTBALL: "lightball",
 });
 
 const GameState = Object.freeze({
@@ -280,15 +282,15 @@ class Board {
         const cleared = this.clearTiles(match.tiles);
         currentCleared.push(...cleared);
 
-        // Decide booster creation: prioritize bombs for 5+ length or T/L shapes.
+        // Decide booster creation by match shape/length.
         let spawnBooster = null;
         let spawnVariant = null;
         if (match.orientation === "cross") {
           spawnBooster = BoosterType.BOMB;
           spawnVariant = "bomb";
         } else if (match.length >= 5) {
-          spawnBooster = BoosterType.BOMB;
-          spawnVariant = match.orientation === "horizontal" || match.orientation === "vertical" ? "gem" : "bomb";
+          spawnBooster = BoosterType.LIGHTBALL;
+          spawnVariant = "lightball";
         } else if (match.length === 4) {
           spawnBooster = match.orientation === "horizontal" ? BoosterType.H_ROCKET : BoosterType.V_ROCKET;
           spawnVariant = match.orientation === "horizontal" ? "arrow-h" : "arrow-v";
@@ -300,7 +302,7 @@ class Board {
             ...anchor,
             booster: spawnBooster,
             variant: spawnVariant,
-            color: cleared[0]?.tile.color,
+            color: spawnBooster === BoosterType.LIGHTBALL ? LIGHTBALL_TILE_COLOR : cleared[0]?.tile.color,
           });
         }
       }
@@ -328,6 +330,7 @@ class Renderer {
     this.board = board;
     this.animationQueue = [];
     this.tileOffset = TILE_SIZE + 4;
+    this.boosterImages = {};
   }
 
   enqueue(animation) {
@@ -363,14 +366,22 @@ class Renderer {
     const radius = 12;
     this.ctx.save();
     this.ctx.translate(12, 12);
-    this.ctx.fillStyle = tile.color;
-    this.roundRect(posX, posY, size, size, radius);
+    const boosterImage = tile.isBooster() ? this.getBoosterImage(tile.booster) : null;
+    const hasBoosterImage = boosterImage && boosterImage.complete && boosterImage.naturalWidth > 0;
+
     this.ctx.shadowColor = "rgba(0,0,0,0.35)";
     this.ctx.shadowBlur = 8;
-    this.ctx.fill();
 
-    if (tile.isBooster()) {
-      this.drawBoosterIcon(tile, posX, posY, size);
+    if (hasBoosterImage) {
+      // Booster tile becomes the image itself (no colored background block).
+      this.drawBoosterImage(boosterImage, posX, posY, size);
+    } else {
+      this.ctx.fillStyle = tile.color;
+      this.roundRect(posX, posY, size, size, radius);
+      this.ctx.fill();
+      if (tile.isBooster()) {
+        this.drawBoosterIcon(tile, posX, posY, size);
+      }
     }
     this.ctx.restore();
   }
@@ -378,7 +389,6 @@ class Renderer {
   drawBoosterIcon(tile, x, y, size) {
     this.ctx.save();
     this.ctx.fillStyle = "rgba(255,255,255,0.9)";
-    this.ctx.translate(12, 12);
     const inset = 14;
     if (tile.booster === BoosterType.H_ROCKET) {
       this.drawArrow(x, y + size / 2, size - inset * 2, 10, "horizontal");
@@ -390,7 +400,30 @@ class Renderer {
       } else {
         this.drawBomb(x + size / 2, y + size / 2, size / 2.8);
       }
+    } else if (tile.booster === BoosterType.LIGHTBALL) {
+      this.drawLightball(x + size / 2, y + size / 2, size / 3);
     }
+    this.ctx.restore();
+  }
+
+  getBoosterImage(boosterType) {
+    if (boosterType === BoosterType.H_ROCKET || boosterType === BoosterType.V_ROCKET) {
+      return this.boosterImages.rocket || null;
+    }
+    if (boosterType === BoosterType.BOMB) {
+      return this.boosterImages.bomb || null;
+    }
+    if (boosterType === BoosterType.LIGHTBALL) {
+      return this.boosterImages.lightball || null;
+    }
+    return null;
+  }
+
+  drawBoosterImage(img, x, y, size) {
+    this.ctx.save();
+    this.roundRect(x, y, size, size, 12);
+    this.ctx.clip();
+    this.ctx.drawImage(img, x, y, size, size);
     this.ctx.restore();
   }
 
@@ -456,6 +489,37 @@ class Renderer {
     ctx.moveTo(cx + radius / 2, cy - radius);
     ctx.quadraticCurveTo(cx + radius, cy - radius - 6, cx + radius + 4, cy - radius - 2);
     ctx.stroke();
+  }
+
+  drawLightball(cx, cy, radius) {
+    const ctx = this.ctx;
+    const glow = ctx.createRadialGradient(cx, cy, radius * 0.25, cx, cy, radius * 1.4);
+    glow.addColorStop(0, "rgba(255,255,255,0.98)");
+    glow.addColorStop(0.45, "rgba(180,234,255,0.95)");
+    glow.addColorStop(1, "rgba(199,165,255,0.25)");
+
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "rgba(255,255,255,0.95)";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius - 2, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Small spark points to make the mirror-ball look distinct from bomb.
+    const sparkColors = ["#fff4b0", "#b7f5ff", "#ffc4e8", "#d5c3ff"];
+    for (let i = 0; i < sparkColors.length; i++) {
+      const angle = (Math.PI * 2 * i) / sparkColors.length + Math.PI / 6;
+      const sx = cx + Math.cos(angle) * (radius * 0.55);
+      const sy = cy + Math.sin(angle) * (radius * 0.55);
+      ctx.fillStyle = sparkColors[i];
+      ctx.beginPath();
+      ctx.arc(sx, sy, 2.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   roundRect(x, y, w, h, r) {
@@ -551,6 +615,9 @@ class Game {
       loadImage("pepper", "assets/pepper.png"),
       loadImage("dh", "assets/dh.png"),
       loadImage("text", "assets/text.png"),
+      loadImage("simbaBlock", "assets/simba_block.png"),
+      loadImage("chedaBlock", "assets/cheda_block.png"),
+      loadImage("pepperBlock", "assets/pepper_block.png"),
     ]).then((results) => {
       results.forEach(({ key, img, ok, src }) => {
         if (!ok) {
@@ -560,6 +627,12 @@ class Game {
         }
         this.assets[key] = img;
       });
+
+      this.renderer.boosterImages = {
+        rocket: this.assets.simbaBlock || null,
+        bomb: this.assets.chedaBlock || null,
+        lightball: this.assets.pepperBlock || null,
+      };
   
       this.assetsLoaded = true;
       this.renderArt(); // 에셋 로드 완료 후 재렌더
@@ -942,32 +1015,25 @@ class Game {
     if (!tileA.isBooster() && !tileB.isBooster()) return false;
 
     const effects = [];
-    // If both boosters -> special combined pattern.
-    if (tileA.isBooster() && tileB.isBooster()) {
-      if (tileA.booster === BoosterType.BOMB || tileB.booster === BoosterType.BOMB) {
-        // Bomb + anything: clear large area and entire row/col of other booster.
-        effects.push(...this.areaAround(posA, 2));
-        effects.push(...this.areaAround(posB, 2));
-      }
-      effects.push(...this.clearLineEffect(posA, "horizontal"));
-      effects.push(...this.clearLineEffect(posA, "vertical"));
-      effects.push(...this.clearLineEffect(posB, "horizontal"));
-      effects.push(...this.clearLineEffect(posB, "vertical"));
+    const hasLightballCombo =
+      tileA.booster === BoosterType.LIGHTBALL || tileB.booster === BoosterType.LIGHTBALL;
+
+    if (hasLightballCombo) {
+      effects.push(...this.resolveLightballCombo(posA, posB, tileA, tileB));
+    } else if (tileA.isBooster() && tileB.isBooster()) {
+      effects.push(...this.positionsForBoosterBlast(posA, tileA.booster));
+      effects.push(...this.positionsForBoosterBlast(posB, tileB.booster));
     } else {
       // Single booster activated by swap.
       const boosterTile = tileA.isBooster() ? tileA : tileB;
       const boosterPos = tileA.isBooster() ? posA : posB;
-      if (boosterTile.booster === BoosterType.H_ROCKET) {
-        effects.push(...this.clearLineEffect(boosterPos, "horizontal"));
-      } else if (boosterTile.booster === BoosterType.V_ROCKET) {
-        effects.push(...this.clearLineEffect(boosterPos, "vertical"));
-      } else if (boosterTile.booster === BoosterType.BOMB) {
-        effects.push(...this.areaAround(boosterPos, 1));
-      }
+      effects.push(...this.positionsForBoosterBlast(boosterPos, boosterTile.booster));
     }
 
+    effects.push(posA, posB);
+
     // Apply effects.
-    const cleared = this.board.clearTiles(effects);
+    const cleared = this.board.clearTiles(this.uniquePositions(effects));
     const gravityMoves = this.board.applyGravity(true);
     this.countObjectives(cleared);
     this.movesLeft -= 1;
@@ -977,6 +1043,97 @@ class Game {
       this.checkEndConditions();
     });
     return true;
+  }
+
+  resolveLightballCombo(posA, posB, tileA, tileB) {
+    const lightballIsA = tileA.booster === BoosterType.LIGHTBALL;
+    const lightballPos = lightballIsA ? posA : posB;
+    const otherPos = lightballIsA ? posB : posA;
+    const otherTile = lightballIsA ? tileB : tileA;
+
+    if (otherTile.booster === BoosterType.LIGHTBALL) {
+      return this.fullBoardEffect();
+    }
+
+    if (!otherTile.isBooster()) {
+      return this.collectPositionsByColor(otherTile.color);
+    }
+
+    // Lightball + booster: convert the chosen color into that booster type, then detonate all.
+    const targets = this.collectPositionsByColor(otherTile.color).filter(
+      ({ x, y }) => !(x === lightballPos.x && y === lightballPos.y)
+    );
+
+    const effects = [];
+    for (const target of targets) {
+      const generatedBooster = this.pickGeneratedBooster(otherTile.booster);
+      effects.push(...this.positionsForBoosterBlast(target, generatedBooster));
+    }
+    effects.push(...this.positionsForBoosterBlast(otherPos, otherTile.booster));
+    return effects;
+  }
+
+  pickGeneratedBooster(baseBooster) {
+    if (baseBooster === BoosterType.H_ROCKET || baseBooster === BoosterType.V_ROCKET) {
+      return Math.random() < 0.5 ? BoosterType.H_ROCKET : BoosterType.V_ROCKET;
+    }
+    if (baseBooster === BoosterType.BOMB) {
+      return BoosterType.BOMB;
+    }
+    return BoosterType.NONE;
+  }
+
+  positionsForBoosterBlast(pos, boosterType) {
+    if (boosterType === BoosterType.H_ROCKET) {
+      return this.clearLineEffect(pos, "horizontal");
+    }
+    if (boosterType === BoosterType.V_ROCKET) {
+      return this.clearLineEffect(pos, "vertical");
+    }
+    if (boosterType === BoosterType.BOMB) {
+      return this.areaAround(pos, 2);
+    }
+    if (boosterType === BoosterType.LIGHTBALL) {
+      return this.fullBoardEffect();
+    }
+    return [pos];
+  }
+
+  collectPositionsByColor(color) {
+    const positions = [];
+    for (let y = 0; y < this.board.size; y++) {
+      for (let x = 0; x < this.board.size; x++) {
+        const tile = this.board.get(x, y);
+        if (!tile) continue;
+        if (tile.booster === BoosterType.LIGHTBALL) continue;
+        if (tile.color === color) {
+          positions.push({ x, y });
+        }
+      }
+    }
+    return positions;
+  }
+
+  fullBoardEffect() {
+    const positions = [];
+    for (let y = 0; y < this.board.size; y++) {
+      for (let x = 0; x < this.board.size; x++) {
+        positions.push({ x, y });
+      }
+    }
+    return positions;
+  }
+
+  uniquePositions(positions) {
+    const unique = [];
+    const seen = new Set();
+    for (const pos of positions) {
+      const key = `${pos.x},${pos.y}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      unique.push(pos);
+    }
+    return unique;
   }
 
   clearLineEffect(pos, orientation) {

@@ -88,11 +88,11 @@ class LevelConfig {
 }
 
 const LEVELS = [
-  new LevelConfig({ moves: 20, objectives: {}, targetTiles: 75 }),
-  new LevelConfig({ moves: 20, objectives: {}, targetTiles: 100 }),
-  new LevelConfig({ moves: 20, objectives: {}, targetTiles: 125 }),
-  new LevelConfig({ moves: 20, objectives: {}, targetTiles: 150 }),
-  new LevelConfig({ moves: 20, objectives: {}, targetTiles: 190 }),
+  new LevelConfig({ moves: 15, objectives: {}, targetTiles: 75 }),
+  new LevelConfig({ moves: 15, objectives: {}, targetTiles: 100 }),
+  new LevelConfig({ moves: 15, objectives: {}, targetTiles: 125 }),
+  new LevelConfig({ moves: 15, objectives: {}, targetTiles: 150 }),
+  new LevelConfig({ moves: 15, objectives: {}, targetTiles: 190 }),
 ];
 
 class Board {
@@ -773,7 +773,7 @@ class Game {
   advanceLevel() {
     const isFinalLevel = this.levelIndex >= this.levels.length - 1;
     if (isFinalLevel) {
-      window.location.replace("ending.html");
+      window.location.replace("final-video.html");
       return;
     }
     const nextIndex = Math.min(this.levelIndex + 1, this.levels.length - 1);
